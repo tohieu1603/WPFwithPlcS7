@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="clr-namespace:VisionHmi.Converters">
+    <c:StatusToBrush x:Key="StatusToBrush" />
+    <c:BoolToBrush x:Key="BoolToBrush" />
+    <c:PriorityToBrush x:Key="PriorityToBrush" />
+    <c:DispositionToBrush x:Key="DispositionToBrush" />
+    <c:BoolToText x:Key="BoolToText" />
+    <c:CountToVisibility x:Key="CountToVisibility" />
+</ResourceDictionary>

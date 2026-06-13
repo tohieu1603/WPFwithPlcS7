@@ -1,0 +1,15 @@
+# Build output
+bin/
+obj/
+
+# Runtime logs
+logs/
+
+# Visual Studio / Rider
+.vs/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store
