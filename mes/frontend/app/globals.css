@@ -1,0 +1,8 @@
+html, body { padding: 0; margin: 0; }
+* { box-sizing: border-box; }
+
+@keyframes beltmove { to { stroke-dashoffset: -22; } }
+.belt-run { animation: beltmove 0.55s linear infinite; }
+
+@keyframes partpulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+.part-run { animation: partpulse 1s ease-in-out infinite; }

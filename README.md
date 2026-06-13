@@ -1,79 +1,94 @@
-# VisionHmi
+# VisionHmi + MES
 
-Giao diện HMI viết bằng WPF cho một dây chuyền lắp ráp có kiểm tra hình ảnh và truy
-xuất nguồn gốc bằng mã vạch. Phần mềm kết nối tới PLC Siemens S7 qua mạng để hiển thị
-trạng thái máy, kết quả kiểm tra, cảnh báo và sản lượng theo thời gian thực. Người vận
-hành chạy hoặc dừng dây chuyền, jog từng trạm và đổi công thức ngay trên giao diện.
+Hệ thống gồm hai phần làm việc cùng nhau cho một dây chuyền lắp ráp có kiểm tra hình
+ảnh và truy xuất nguồn gốc bằng mã vạch:
+
+- VisionHmi: giao diện HMI viết bằng WPF (.NET 10). Kết nối tới PLC Siemens S7 để giám
+  sát và điều khiển dây chuyền, đồng thời đẩy dữ liệu sản xuất lên MES.
+- mes: hệ thống MES trên web. Backend nhận dữ liệu từ HMI và lưu trữ; frontend hiển thị
+  dashboard, sản lượng, chất lượng và truy xuất nguồn gốc theo thời gian thực.
+
+## Luồng dữ liệu
+
+```
+HMI  <->  PLC S7        (đọc trạng thái, ghi lệnh)
+HMI   ->  MES backend   (đẩy trạng thái, KPI, bản ghi truy xuất, cảnh báo)
+MES backend -> MES web  (hiển thị real-time)
+```
 
 ## Công nghệ
 
-- .NET 10, WPF
-- MVVM với CommunityToolkit.Mvvm
-- S7netplus để giao tiếp S7
-- Serilog để ghi log
-- Microsoft.Extensions.DependencyInjection
+HMI
+- .NET 10, WPF, MVVM (CommunityToolkit.Mvvm)
+- S7netplus (giao tiếp S7)
+- Serilog (ghi log)
 
-## Kết nối PLC
+MES backend
+- Express, TypeScript, TypeORM
+- SQLite (không cần cài server cơ sở dữ liệu)
 
-HMI giao tiếp với PLC qua giao thức S7 (ISO-on-TCP, cổng 102). Cấu hình kết nối nằm
-trong `Plc/PlcConnection.cs` (mặc định 127.0.0.1, CPU S7-1500, rack 0, slot 1). Mọi thao
-tác đọc ghi chạy trên một luồng nền riêng, nên giao diện không bị treo kể cả khi đường
-truyền chậm hoặc rớt.
-
-Dữ liệu trao đổi qua năm khối DB:
-
-- DB10 Command (HMI gửi xuống PLC)
-- DB11 Status (PLC gửi lên HMI)
-- DB12 Recipe
-- DB13 KPI
-- DB14 Alarm
-
-## Các màn hình
-
-- Overview: trạng thái và lệnh PackML, tám trạm, chỉ số sản xuất (good, reject,
-  first-pass yield, throughput).
-- Inspection: kết quả đọc mã vạch, vision pass/fail kèm số đo, khắc và verify, serial
-  của sản phẩm đang chạy.
-- Alarms: danh sách cảnh báo đang hoạt động kèm mức ưu tiên và trạm.
-- Recipe: chỉnh setpoint và tải xuống PLC.
+MES frontend
+- Next.js 16, React 19
+- Ant Design, TanStack Query
+- React Flow (sơ đồ dây chuyền), Recharts (biểu đồ)
 
 ## Cấu trúc thư mục
 
 ```
-Plc/         kết nối S7, giải mã và mã hoá byte, worker nền
-ViewModels/  mỗi màn một view model, kèm view model trạm dùng chung
-Views/       XAML từng màn và cửa sổ chính
-Resources/   theme, style, converter
-Generated/   PlcTags.g.cs, bản đồ địa chỉ tag (tự sinh, không sửa tay)
-Converters/  các value converter
+VisionHmi/
+  Plc/         kết nối S7, giải mã byte, worker chạy nền
+  Services/    MesReporter - đẩy dữ liệu lên MES
+  ViewModels/  Views/  Resources/  Generated/
+  mes/
+    backend/   Express + TypeORM, REST API
+    frontend/  Next.js + Ant Design, giao diện web
 ```
 
-## Build và chạy
+## Yêu cầu
 
-.NET 10 SDK.
+- .NET 10 SDK
+- Node.js 20 trở lên
+- Một PLC Siemens S7. HMI mặc định kết nối 127.0.0.1, rack 0, slot 1, CPU S7-1500;
+  chỉnh trong `Plc/PlcConnection.cs`.
 
+## Chạy dự án
+
+Mở ba terminal.
+
+1. MES backend
+```
+cd mes/backend
+npm install
+npm start
+```
+Backend chạy ở http://localhost:4000
+
+2. MES frontend
+```
+cd mes/frontend
+npm install
+npm run dev
+```
+Mở http://localhost:3000
+
+3. HMI
 ```
 dotnet build
 dotnet run
 ```
+HMI tự kết nối PLC, bắt đầu giám sát và đẩy dữ liệu lên MES. Trên HMI chọn chế độ
+PRODUCTION rồi bấm RESET, sau đó START để chạy dây chuyền.
 
-Hoặc chạy file thực thi trong `bin/Debug/<tfm>/win-x64/VisionHmi.exe`. Khi khởi động,
-HMI tự kết nối PLC và bắt đầu đọc dữ liệu. Để chạy dây chuyền, chọn chế độ PRODUCTION
-rồi bấm RESET, sau đó START.
+## Các màn hình MES (web)
+
+- Dashboard: trạng thái máy, OEE, sơ đồ dây chuyền (process flow), biểu đồ sản lượng và
+  năng suất.
+- Stations: sơ đồ thiết bị tương tác, chi tiết từng trạm, phát hiện điểm nghẽn.
+- Quality: xu hướng điểm vision, biểu đồ SPC kích thước, phân bố hạng in mã.
+- Production Records: bảng truy xuất nguồn gốc, xem chi tiết từng sản phẩm, xuất CSV.
+- Alarms: danh sách cảnh báo theo mức ưu tiên.
+- Recipes: quản lý công thức sản phẩm.
 
 ## Ghi log
 
-Log được ghi ra console và ra file theo ngày trong thư mục `logs` (`hmi-YYYYMMDD.log`)
-bằng Serilog. Các sự kiện kết nối, lệnh của người vận hành và lỗi đều được ghi lại.
-
-## Bản đồ tag
-
-File `Generated/PlcTags.g.cs` chứa địa chỉ S7 của mọi tag (khối DB, byte, bit, kiểu).
-File này tự sinh từ danh sách tag của dây chuyền nên không sửa tay. Khi danh sách tag
-thay đổi thì sinh lại file.
-
-## Ghi chú
-
-- HMI đọc STATUS, RECIPE, KPI và ALARM mỗi vòng quét, chỉ ghi COMMAND và RECIPE khi
-  người vận hành thao tác.
-- Các chỉnh sửa công thức chỉ nằm ở máy tới khi bấm Download.
+HMI ghi log bằng Serilog ra thư mục `logs` theo ngày. MES backend in log ra console.

@@ -15,7 +15,7 @@ public static class Db
     public const int Kpi = 13;
     public const int Alarm = 14;
     public const int SizeCommand = 8;
-    public const int SizeStatus = 176;
+    public const int SizeStatus = 208;
     public const int SizeRecipe = 28;
     public const int SizeKpi = 46;
     public const int SizeAlarm = 8;
@@ -72,71 +72,79 @@ public static class Tag
     public static readonly TagRef ST10_Busy = new(11, 14, 3, TagKind.Bool);
     public static readonly TagRef ST10_PartPresent = new(11, 14, 4, TagKind.Bool);
     public static readonly TagRef ST10_Count = new(11, 16, 0, TagKind.DInt);
-    public static readonly TagRef ST20_Run = new(11, 20, 0, TagKind.Bool);
-    public static readonly TagRef ST20_Ready = new(11, 20, 1, TagKind.Bool);
-    public static readonly TagRef ST20_Fault = new(11, 20, 2, TagKind.Bool);
-    public static readonly TagRef ST20_Busy = new(11, 20, 3, TagKind.Bool);
-    public static readonly TagRef ST20_PartPresent = new(11, 20, 4, TagKind.Bool);
-    public static readonly TagRef ST20_Count = new(11, 22, 0, TagKind.DInt);
-    public static readonly TagRef ST30_Run = new(11, 26, 0, TagKind.Bool);
-    public static readonly TagRef ST30_Ready = new(11, 26, 1, TagKind.Bool);
-    public static readonly TagRef ST30_Fault = new(11, 26, 2, TagKind.Bool);
-    public static readonly TagRef ST30_Busy = new(11, 26, 3, TagKind.Bool);
-    public static readonly TagRef ST30_PartPresent = new(11, 26, 4, TagKind.Bool);
-    public static readonly TagRef ST30_Count = new(11, 28, 0, TagKind.DInt);
-    public static readonly TagRef ST40_Run = new(11, 32, 0, TagKind.Bool);
-    public static readonly TagRef ST40_Ready = new(11, 32, 1, TagKind.Bool);
-    public static readonly TagRef ST40_Fault = new(11, 32, 2, TagKind.Bool);
-    public static readonly TagRef ST40_Busy = new(11, 32, 3, TagKind.Bool);
-    public static readonly TagRef ST40_PartPresent = new(11, 32, 4, TagKind.Bool);
-    public static readonly TagRef ST40_Count = new(11, 34, 0, TagKind.DInt);
-    public static readonly TagRef ST50_Run = new(11, 38, 0, TagKind.Bool);
-    public static readonly TagRef ST50_Ready = new(11, 38, 1, TagKind.Bool);
-    public static readonly TagRef ST50_Fault = new(11, 38, 2, TagKind.Bool);
-    public static readonly TagRef ST50_Busy = new(11, 38, 3, TagKind.Bool);
-    public static readonly TagRef ST50_PartPresent = new(11, 38, 4, TagKind.Bool);
-    public static readonly TagRef ST50_Count = new(11, 40, 0, TagKind.DInt);
-    public static readonly TagRef ST60_Run = new(11, 44, 0, TagKind.Bool);
-    public static readonly TagRef ST60_Ready = new(11, 44, 1, TagKind.Bool);
-    public static readonly TagRef ST60_Fault = new(11, 44, 2, TagKind.Bool);
-    public static readonly TagRef ST60_Busy = new(11, 44, 3, TagKind.Bool);
-    public static readonly TagRef ST60_PartPresent = new(11, 44, 4, TagKind.Bool);
-    public static readonly TagRef ST60_Count = new(11, 46, 0, TagKind.DInt);
-    public static readonly TagRef ST70_Run = new(11, 50, 0, TagKind.Bool);
-    public static readonly TagRef ST70_Ready = new(11, 50, 1, TagKind.Bool);
-    public static readonly TagRef ST70_Fault = new(11, 50, 2, TagKind.Bool);
-    public static readonly TagRef ST70_Busy = new(11, 50, 3, TagKind.Bool);
-    public static readonly TagRef ST70_PartPresent = new(11, 50, 4, TagKind.Bool);
-    public static readonly TagRef ST70_Count = new(11, 52, 0, TagKind.DInt);
-    public static readonly TagRef ST80_Run = new(11, 56, 0, TagKind.Bool);
-    public static readonly TagRef ST80_Ready = new(11, 56, 1, TagKind.Bool);
-    public static readonly TagRef ST80_Fault = new(11, 56, 2, TagKind.Bool);
-    public static readonly TagRef ST80_Busy = new(11, 56, 3, TagKind.Bool);
-    public static readonly TagRef ST80_PartPresent = new(11, 56, 4, TagKind.Bool);
-    public static readonly TagRef ST80_Count = new(11, 58, 0, TagKind.DInt);
-    public static readonly TagRef BCR_Busy = new(11, 62, 0, TagKind.Bool);
-    public static readonly TagRef BCR_ReadOK = new(11, 62, 1, TagKind.Bool);
-    public static readonly TagRef BCR_NoRead = new(11, 62, 2, TagKind.Bool);
-    public static readonly TagRef BCR_Grade = new(11, 64, 0, TagKind.Int);
-    public static readonly TagRef BCR_Data = new(11, 66, 0, TagKind.String);
-    public static readonly TagRef VIS_Busy = new(11, 88, 0, TagKind.Bool);
-    public static readonly TagRef VIS_ResultReady = new(11, 88, 1, TagKind.Bool);
-    public static readonly TagRef VIS_Pass = new(11, 88, 2, TagKind.Bool);
-    public static readonly TagRef VIS_Fail = new(11, 88, 3, TagKind.Bool);
-    public static readonly TagRef VIS_MatchScore = new(11, 90, 0, TagKind.Real);
-    public static readonly TagRef VIS_Measure1 = new(11, 94, 0, TagKind.Real);
-    public static readonly TagRef VIS_Measure2 = new(11, 98, 0, TagKind.Real);
-    public static readonly TagRef VIS_ResultCode = new(11, 102, 0, TagKind.Int);
-    public static readonly TagRef MRK_Busy = new(11, 104, 0, TagKind.Bool);
-    public static readonly TagRef MRK_Done = new(11, 104, 1, TagKind.Bool);
-    public static readonly TagRef MRK_Serial = new(11, 105, 0, TagKind.String);
-    public static readonly TagRef VFY_Match = new(11, 127, 0, TagKind.Bool);
-    public static readonly TagRef VFY_Grade = new(11, 128, 0, TagKind.Int);
-    public static readonly TagRef Cur_Serial = new(11, 130, 0, TagKind.String);
-    public static readonly TagRef Cur_ProductId = new(11, 152, 0, TagKind.String);
-    public static readonly TagRef Cur_Disposition = new(11, 170, 0, TagKind.Int);
-    public static readonly TagRef RejectBin_Count = new(11, 172, 0, TagKind.Int);
-    public static readonly TagRef RejectBin_Full = new(11, 174, 0, TagKind.Bool);
+    public static readonly TagRef ST10_CycleTime = new(11, 20, 0, TagKind.Real);
+    public static readonly TagRef ST20_Run = new(11, 24, 0, TagKind.Bool);
+    public static readonly TagRef ST20_Ready = new(11, 24, 1, TagKind.Bool);
+    public static readonly TagRef ST20_Fault = new(11, 24, 2, TagKind.Bool);
+    public static readonly TagRef ST20_Busy = new(11, 24, 3, TagKind.Bool);
+    public static readonly TagRef ST20_PartPresent = new(11, 24, 4, TagKind.Bool);
+    public static readonly TagRef ST20_Count = new(11, 26, 0, TagKind.DInt);
+    public static readonly TagRef ST20_CycleTime = new(11, 30, 0, TagKind.Real);
+    public static readonly TagRef ST30_Run = new(11, 34, 0, TagKind.Bool);
+    public static readonly TagRef ST30_Ready = new(11, 34, 1, TagKind.Bool);
+    public static readonly TagRef ST30_Fault = new(11, 34, 2, TagKind.Bool);
+    public static readonly TagRef ST30_Busy = new(11, 34, 3, TagKind.Bool);
+    public static readonly TagRef ST30_PartPresent = new(11, 34, 4, TagKind.Bool);
+    public static readonly TagRef ST30_Count = new(11, 36, 0, TagKind.DInt);
+    public static readonly TagRef ST30_CycleTime = new(11, 40, 0, TagKind.Real);
+    public static readonly TagRef ST40_Run = new(11, 44, 0, TagKind.Bool);
+    public static readonly TagRef ST40_Ready = new(11, 44, 1, TagKind.Bool);
+    public static readonly TagRef ST40_Fault = new(11, 44, 2, TagKind.Bool);
+    public static readonly TagRef ST40_Busy = new(11, 44, 3, TagKind.Bool);
+    public static readonly TagRef ST40_PartPresent = new(11, 44, 4, TagKind.Bool);
+    public static readonly TagRef ST40_Count = new(11, 46, 0, TagKind.DInt);
+    public static readonly TagRef ST40_CycleTime = new(11, 50, 0, TagKind.Real);
+    public static readonly TagRef ST50_Run = new(11, 54, 0, TagKind.Bool);
+    public static readonly TagRef ST50_Ready = new(11, 54, 1, TagKind.Bool);
+    public static readonly TagRef ST50_Fault = new(11, 54, 2, TagKind.Bool);
+    public static readonly TagRef ST50_Busy = new(11, 54, 3, TagKind.Bool);
+    public static readonly TagRef ST50_PartPresent = new(11, 54, 4, TagKind.Bool);
+    public static readonly TagRef ST50_Count = new(11, 56, 0, TagKind.DInt);
+    public static readonly TagRef ST50_CycleTime = new(11, 60, 0, TagKind.Real);
+    public static readonly TagRef ST60_Run = new(11, 64, 0, TagKind.Bool);
+    public static readonly TagRef ST60_Ready = new(11, 64, 1, TagKind.Bool);
+    public static readonly TagRef ST60_Fault = new(11, 64, 2, TagKind.Bool);
+    public static readonly TagRef ST60_Busy = new(11, 64, 3, TagKind.Bool);
+    public static readonly TagRef ST60_PartPresent = new(11, 64, 4, TagKind.Bool);
+    public static readonly TagRef ST60_Count = new(11, 66, 0, TagKind.DInt);
+    public static readonly TagRef ST60_CycleTime = new(11, 70, 0, TagKind.Real);
+    public static readonly TagRef ST70_Run = new(11, 74, 0, TagKind.Bool);
+    public static readonly TagRef ST70_Ready = new(11, 74, 1, TagKind.Bool);
+    public static readonly TagRef ST70_Fault = new(11, 74, 2, TagKind.Bool);
+    public static readonly TagRef ST70_Busy = new(11, 74, 3, TagKind.Bool);
+    public static readonly TagRef ST70_PartPresent = new(11, 74, 4, TagKind.Bool);
+    public static readonly TagRef ST70_Count = new(11, 76, 0, TagKind.DInt);
+    public static readonly TagRef ST70_CycleTime = new(11, 80, 0, TagKind.Real);
+    public static readonly TagRef ST80_Run = new(11, 84, 0, TagKind.Bool);
+    public static readonly TagRef ST80_Ready = new(11, 84, 1, TagKind.Bool);
+    public static readonly TagRef ST80_Fault = new(11, 84, 2, TagKind.Bool);
+    public static readonly TagRef ST80_Busy = new(11, 84, 3, TagKind.Bool);
+    public static readonly TagRef ST80_PartPresent = new(11, 84, 4, TagKind.Bool);
+    public static readonly TagRef ST80_Count = new(11, 86, 0, TagKind.DInt);
+    public static readonly TagRef ST80_CycleTime = new(11, 90, 0, TagKind.Real);
+    public static readonly TagRef BCR_Busy = new(11, 94, 0, TagKind.Bool);
+    public static readonly TagRef BCR_ReadOK = new(11, 94, 1, TagKind.Bool);
+    public static readonly TagRef BCR_NoRead = new(11, 94, 2, TagKind.Bool);
+    public static readonly TagRef BCR_Grade = new(11, 96, 0, TagKind.Int);
+    public static readonly TagRef BCR_Data = new(11, 98, 0, TagKind.String);
+    public static readonly TagRef VIS_Busy = new(11, 120, 0, TagKind.Bool);
+    public static readonly TagRef VIS_ResultReady = new(11, 120, 1, TagKind.Bool);
+    public static readonly TagRef VIS_Pass = new(11, 120, 2, TagKind.Bool);
+    public static readonly TagRef VIS_Fail = new(11, 120, 3, TagKind.Bool);
+    public static readonly TagRef VIS_MatchScore = new(11, 122, 0, TagKind.Real);
+    public static readonly TagRef VIS_Measure1 = new(11, 126, 0, TagKind.Real);
+    public static readonly TagRef VIS_Measure2 = new(11, 130, 0, TagKind.Real);
+    public static readonly TagRef VIS_ResultCode = new(11, 134, 0, TagKind.Int);
+    public static readonly TagRef MRK_Busy = new(11, 136, 0, TagKind.Bool);
+    public static readonly TagRef MRK_Done = new(11, 136, 1, TagKind.Bool);
+    public static readonly TagRef MRK_Serial = new(11, 137, 0, TagKind.String);
+    public static readonly TagRef VFY_Match = new(11, 159, 0, TagKind.Bool);
+    public static readonly TagRef VFY_Grade = new(11, 160, 0, TagKind.Int);
+    public static readonly TagRef Cur_Serial = new(11, 162, 0, TagKind.String);
+    public static readonly TagRef Cur_ProductId = new(11, 184, 0, TagKind.String);
+    public static readonly TagRef Cur_Disposition = new(11, 202, 0, TagKind.Int);
+    public static readonly TagRef RejectBin_Count = new(11, 204, 0, TagKind.Int);
+    public static readonly TagRef RejectBin_Full = new(11, 206, 0, TagKind.Bool);
     public static readonly TagRef Recipe_Number = new(12, 0, 0, TagKind.Int);
     public static readonly TagRef Cycle_Target = new(12, 2, 0, TagKind.Real);
     public static readonly TagRef Press_Force_SP = new(12, 6, 0, TagKind.Real);
@@ -213,48 +221,56 @@ public static class Tag
         { "ST10_Busy", ST10_Busy },
         { "ST10_PartPresent", ST10_PartPresent },
         { "ST10_Count", ST10_Count },
+        { "ST10_CycleTime", ST10_CycleTime },
         { "ST20_Run", ST20_Run },
         { "ST20_Ready", ST20_Ready },
         { "ST20_Fault", ST20_Fault },
         { "ST20_Busy", ST20_Busy },
         { "ST20_PartPresent", ST20_PartPresent },
         { "ST20_Count", ST20_Count },
+        { "ST20_CycleTime", ST20_CycleTime },
         { "ST30_Run", ST30_Run },
         { "ST30_Ready", ST30_Ready },
         { "ST30_Fault", ST30_Fault },
         { "ST30_Busy", ST30_Busy },
         { "ST30_PartPresent", ST30_PartPresent },
         { "ST30_Count", ST30_Count },
+        { "ST30_CycleTime", ST30_CycleTime },
         { "ST40_Run", ST40_Run },
         { "ST40_Ready", ST40_Ready },
         { "ST40_Fault", ST40_Fault },
         { "ST40_Busy", ST40_Busy },
         { "ST40_PartPresent", ST40_PartPresent },
         { "ST40_Count", ST40_Count },
+        { "ST40_CycleTime", ST40_CycleTime },
         { "ST50_Run", ST50_Run },
         { "ST50_Ready", ST50_Ready },
         { "ST50_Fault", ST50_Fault },
         { "ST50_Busy", ST50_Busy },
         { "ST50_PartPresent", ST50_PartPresent },
         { "ST50_Count", ST50_Count },
+        { "ST50_CycleTime", ST50_CycleTime },
         { "ST60_Run", ST60_Run },
         { "ST60_Ready", ST60_Ready },
         { "ST60_Fault", ST60_Fault },
         { "ST60_Busy", ST60_Busy },
         { "ST60_PartPresent", ST60_PartPresent },
         { "ST60_Count", ST60_Count },
+        { "ST60_CycleTime", ST60_CycleTime },
         { "ST70_Run", ST70_Run },
         { "ST70_Ready", ST70_Ready },
         { "ST70_Fault", ST70_Fault },
         { "ST70_Busy", ST70_Busy },
         { "ST70_PartPresent", ST70_PartPresent },
         { "ST70_Count", ST70_Count },
+        { "ST70_CycleTime", ST70_CycleTime },
         { "ST80_Run", ST80_Run },
         { "ST80_Ready", ST80_Ready },
         { "ST80_Fault", ST80_Fault },
         { "ST80_Busy", ST80_Busy },
         { "ST80_PartPresent", ST80_PartPresent },
         { "ST80_Count", ST80_Count },
+        { "ST80_CycleTime", ST80_CycleTime },
         { "BCR_Busy", BCR_Busy },
         { "BCR_ReadOK", BCR_ReadOK },
         { "BCR_NoRead", BCR_NoRead },

@@ -10,6 +10,8 @@
     <AssemblyName>VisionHmi</AssemblyName>
     <Platforms>x64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- The MES web app lives under mes/; keep it out of the .NET build. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);mes\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
