@@ -50,7 +50,7 @@ Converters/  các value converter
 
 ## Build và chạy
 
-Cần .NET 10 SDK.
+.NET 10 SDK.
 
 ```
 dotnet build
