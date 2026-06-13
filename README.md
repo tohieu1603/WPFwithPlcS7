@@ -1,79 +1,79 @@
 # VisionHmi
 
-WPF HMI for a vision and barcode track-and-trace assembly line. It connects to a
-Siemens S7 PLC over the network and shows live machine state, inspection results,
-alarms and production counters. Operators start and stop the line, jog stations and
-change the recipe from here.
+Giao diện HMI viết bằng WPF cho một dây chuyền lắp ráp có kiểm tra hình ảnh và truy
+xuất nguồn gốc bằng mã vạch. Phần mềm kết nối tới PLC Siemens S7 qua mạng để hiển thị
+trạng thái máy, kết quả kiểm tra, cảnh báo và sản lượng theo thời gian thực. Người vận
+hành chạy hoặc dừng dây chuyền, jog từng trạm và đổi công thức ngay trên giao diện.
 
-## Stack
+## Công nghệ
 
 - .NET 10, WPF
-- MVVM with CommunityToolkit.Mvvm
-- S7netplus for S7 communication
-- Serilog for logging
+- MVVM với CommunityToolkit.Mvvm
+- S7netplus để giao tiếp S7
+- Serilog để ghi log
 - Microsoft.Extensions.DependencyInjection
 
-## How it connects
+## Kết nối PLC
 
-The HMI talks to the PLC using the S7 protocol (ISO-on-TCP, port 102). Connection
-settings live in `Plc/PlcConnection.cs` (default 127.0.0.1, CPU S7-1500, rack 0,
-slot 1). All reads and writes run on a dedicated background thread, so the UI keeps
-responding even when the link is slow or drops.
+HMI giao tiếp với PLC qua giao thức S7 (ISO-on-TCP, cổng 102). Cấu hình kết nối nằm
+trong `Plc/PlcConnection.cs` (mặc định 127.0.0.1, CPU S7-1500, rack 0, slot 1). Mọi thao
+tác đọc ghi chạy trên một luồng nền riêng, nên giao diện không bị treo kể cả khi đường
+truyền chậm hoặc rớt.
 
-Data is exchanged through five data blocks:
+Dữ liệu trao đổi qua năm khối DB:
 
-- DB10 Command (HMI to PLC)
-- DB11 Status (PLC to HMI)
+- DB10 Command (HMI gửi xuống PLC)
+- DB11 Status (PLC gửi lên HMI)
 - DB12 Recipe
 - DB13 KPI
-- DB14 Alarms
+- DB14 Alarm
 
-## Screens
+## Các màn hình
 
-- Overview: PackML state and commands, the eight stations, and KPI (good, reject,
+- Overview: trạng thái và lệnh PackML, tám trạm, chỉ số sản xuất (good, reject,
   first-pass yield, throughput).
-- Inspection: live barcode read, vision pass/fail with measurements, mark and verify,
-  and the current unit serial.
-- Alarms: active alarms with priority and station.
-- Recipe: edit setpoints and download them to the PLC.
+- Inspection: kết quả đọc mã vạch, vision pass/fail kèm số đo, khắc và verify, serial
+  của sản phẩm đang chạy.
+- Alarms: danh sách cảnh báo đang hoạt động kèm mức ưu tiên và trạm.
+- Recipe: chỉnh setpoint và tải xuống PLC.
 
-## Project layout
+## Cấu trúc thư mục
 
 ```
-Plc/         S7 link, byte decode/encode, background worker
-ViewModels/  one per screen, plus a shared station view model
-Views/       XAML for each screen and the shell window
-Resources/   theme, styles, converters
-Generated/   PlcTags.g.cs, the tag address map (generated, do not edit)
-Converters/  value converters
+Plc/         kết nối S7, giải mã và mã hoá byte, worker nền
+ViewModels/  mỗi màn một view model, kèm view model trạm dùng chung
+Views/       XAML từng màn và cửa sổ chính
+Resources/   theme, style, converter
+Generated/   PlcTags.g.cs, bản đồ địa chỉ tag (tự sinh, không sửa tay)
+Converters/  các value converter
 ```
 
-## Build and run
+## Build và chạy
 
-Requires the .NET 10 SDK.
+Cần .NET 10 SDK.
 
 ```
 dotnet build
 dotnet run
 ```
 
-You can also run the built executable from `bin/Debug/<tfm>/win-x64/VisionHmi.exe`.
-On start the HMI connects to the PLC and begins polling. To run the line, set the mode
-to PRODUCTION and press RESET, then START.
+Hoặc chạy file thực thi trong `bin/Debug/<tfm>/win-x64/VisionHmi.exe`. Khi khởi động,
+HMI tự kết nối PLC và bắt đầu đọc dữ liệu. Để chạy dây chuyền, chọn chế độ PRODUCTION
+rồi bấm RESET, sau đó START.
 
-## Logging
+## Ghi log
 
-Logs are written to the console and to a daily file under `logs/` (`hmi-YYYYMMDD.log`)
-using Serilog. Connection events, operator commands and errors are recorded.
+Log được ghi ra console và ra file theo ngày trong thư mục `logs` (`hmi-YYYYMMDD.log`)
+bằng Serilog. Các sự kiện kết nối, lệnh của người vận hành và lỗi đều được ghi lại.
 
-## Tag map
+## Bản đồ tag
 
-`Generated/PlcTags.g.cs` holds the S7 address of every tag (data block, byte, bit and
-type). It is generated from the line tag list, so do not edit it by hand. Regenerate it
-when the tag list changes.
+File `Generated/PlcTags.g.cs` chứa địa chỉ S7 của mọi tag (khối DB, byte, bit, kiểu).
+File này tự sinh từ danh sách tag của dây chuyền nên không sửa tay. Khi danh sách tag
+thay đổi thì sinh lại file.
 
-## Notes
+## Ghi chú
 
-- The HMI reads STATUS, RECIPE, KPI and ALARM every scan, and writes COMMAND and RECIPE
-  only when the operator acts.
-- Recipe edits stay local until you press Download.
+- HMI đọc STATUS, RECIPE, KPI và ALARM mỗi vòng quét, chỉ ghi COMMAND và RECIPE khi
+  người vận hành thao tác.
+- Các chỉnh sửa công thức chỉ nằm ở máy tới khi bấm Download.
