@@ -6,7 +6,7 @@
             <Setter Property="Margin" Value="0,0,0,4" />
         </Style>
         <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxBase}">
-            <Setter Property="Width" Value="130" />
+            <Setter Property="Width" Value="140" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Margin" Value="0,0,0,14" />
         </Style>
@@ -17,16 +17,38 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text="RECIPE / SETPOINTS — DB12" Style="{StaticResource H1}" Margin="0,0,0,14" />
+
+        <!-- header + status -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="RECIPE / SETPOINTS — DB12" Style="{StaticResource H1}" FontSize="16" VerticalAlignment="Center" />
+                    <Border Style="{StaticResource Pill}" Background="{StaticResource Warn}" Margin="14,0,0,0"
+                            Visibility="{Binding Dirty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="MODIFIED — NOT DOWNLOADED" Foreground="White" FontSize="10" FontWeight="Bold" />
+                    </Border>
+                </StackPanel>
+                <TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="300" />
             </Grid.ColumnDefinitions>
 
+            <!-- editor -->
             <Border Grid.Column="0" Style="{StaticResource CardBorder}" Margin="0,0,12,0" VerticalAlignment="Top">
                 <StackPanel>
+                    <TextBlock Text="MODEL PRESETS" Style="{StaticResource Caption}" Margin="0,0,0,8" />
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                        <Button Content="MODEL-A" Command="{Binding ApplyPresetCommand}" CommandParameter="A" Style="{StaticResource CmdBtn}" />
+                        <Button Content="MODEL-B" Command="{Binding ApplyPresetCommand}" CommandParameter="B" Style="{StaticResource CmdBtn}" />
+                        <Button Content="MODEL-C" Command="{Binding ApplyPresetCommand}" CommandParameter="C" Style="{StaticResource CmdBtn}" />
+                    </StackPanel>
+                    <Border Height="1" Background="{StaticResource Border}" Margin="0,0,0,16" />
+
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" />
@@ -34,15 +56,16 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <StackPanel Grid.Row="0" Grid.Column="0"><TextBlock Text="Recipe No." Style="{StaticResource Lbl}" /><TextBox Text="{Binding RecipeNumber}" /></StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="1"><TextBlock Text="Cycle target (s)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding CycleTarget, StringFormat=F0}" /></StackPanel>
-                        <StackPanel Grid.Row="0" Grid.Column="2"><TextBlock Text="Press force (N)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding PressForce, StringFormat=F0}" /></StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="0"><TextBlock Text="Screw torque (Nm)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding ScrewTorque, StringFormat=F2}" /></StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="1"><TextBlock Text="Gap nominal (mm)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding GapNominal, StringFormat=F3}" /></StackPanel>
-                        <StackPanel Grid.Row="1" Grid.Column="2"><TextBlock Text="Gap tol +/- (mm)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding GapTol, StringFormat=F3}" /></StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="0"><TextBlock Text="Vision min score (%)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding VisionMinScore, StringFormat=F0}" /></StackPanel>
-                        <StackPanel Grid.Row="2" Grid.Column="1"><TextBlock Text="Barcode min grade" Style="{StaticResource Lbl}" /><TextBox Text="{Binding BarcodeMinGrade}" /></StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="0"><TextBlock Text="Recipe No." Style="{StaticResource Lbl}" /><TextBox Text="{Binding RecipeNumber, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1"><TextBlock Text="Cycle target (s)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding CycleTarget, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2"><TextBlock Text="Press force (N)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding PressForce, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="0"><TextBlock Text="Screw torque (Nm)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding ScrewTorque, StringFormat=F2, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1"><TextBlock Text="Gap nominal (mm)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding GapNominal, StringFormat=F3, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2"><TextBlock Text="Gap tol +/- (mm)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding GapTol, StringFormat=F3, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="0"><TextBlock Text="Vision min score (%)" Style="{StaticResource Lbl}" /><TextBox Text="{Binding VisionMinScore, StringFormat=F0, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1"><TextBlock Text="Barcode min grade" Style="{StaticResource Lbl}" /><TextBox Text="{Binding BarcodeMinGrade, UpdateSourceTrigger=PropertyChanged}" /></StackPanel>
                     </Grid>
+
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                         <Button Content="DOWNLOAD TO PLC" Command="{Binding DownloadCommand}" Style="{StaticResource PrimaryBtn}" />
                         <Button Content="RELOAD" Command="{Binding ReloadCommand}" Style="{StaticResource CmdBtn}" />
@@ -50,17 +73,23 @@
                 </StackPanel>
             </Border>
 
+            <!-- active read-back -->
             <Border Grid.Column="1" Style="{StaticResource CardBorder}" VerticalAlignment="Top">
                 <StackPanel>
-                    <TextBlock Text="ACTIVE IN PLC" Style="{StaticResource Caption}" Margin="0,0,0,10" />
-                    <Grid Margin="0,0,0,8">
-                        <TextBlock Text="Gap nominal" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding ActiveGapNominal, StringFormat='{}{0:F3} mm'}" HorizontalAlignment="Right" Style="{StaticResource Value}" FontSize="13" />
+                    <TextBlock Text="ACTIVE IN PLC" Style="{StaticResource Caption}" Margin="0,0,0,12" />
+                    <TextBlock Text="Gap nominal" Style="{StaticResource Caption}" />
+                    <Grid Margin="0,2,0,12">
+                        <TextBlock Text="{Binding ActiveGapNominal, StringFormat='{}{0:F3} mm'}" Style="{StaticResource Value}" FontSize="15" />
+                        <TextBlock Text="{Binding GapNominal, StringFormat='edit {0:F3}'}" HorizontalAlignment="Right" Foreground="{StaticResource TextMuted}" FontFamily="Consolas" FontSize="11" VerticalAlignment="Bottom" />
                     </Grid>
-                    <Grid>
-                        <TextBlock Text="Vision min score" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding ActiveVisionMinScore, StringFormat='{}{0:F0} %'}" HorizontalAlignment="Right" Style="{StaticResource Value}" FontSize="13" />
+                    <TextBlock Text="Vision min score" Style="{StaticResource Caption}" />
+                    <Grid Margin="0,2,0,12">
+                        <TextBlock Text="{Binding ActiveVisionMinScore, StringFormat='{}{0:F0} %'}" Style="{StaticResource Value}" FontSize="15" />
+                        <TextBlock Text="{Binding VisionMinScore, StringFormat='edit {0:F0}'}" HorizontalAlignment="Right" Foreground="{StaticResource TextMuted}" FontFamily="Consolas" FontSize="11" VerticalAlignment="Bottom" />
                     </Grid>
+                    <Border Height="1" Background="{StaticResource Border}" Margin="0,0,0,12" />
+                    <TextBlock Text="Edit values, then DOWNLOAD writes the whole recipe to DB12. RELOAD pulls the live values back from the PLC."
+                               Style="{StaticResource Caption}" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
         </Grid>

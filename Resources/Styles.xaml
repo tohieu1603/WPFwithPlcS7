@@ -2,11 +2,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style x:Key="CardBorder" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource Card}" />
+        <Setter Property="Background" Value="{StaticResource CardGradient}" />
         <Setter Property="BorderBrush" Value="{StaticResource Border}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="3" />
-        <Setter Property="Padding" Value="12" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="14" ShadowDepth="2" Direction="270" Opacity="0.38" Color="#000000" />
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="H1" TargetType="TextBlock">
@@ -123,6 +128,94 @@
     <Style TargetType="ScrollBar">
         <Setter Property="Width" Value="8" />
         <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- ===== Mimic: indicator lamp, cabinet pushbuttons, equipment tile, pill ===== -->
+
+    <!-- Round status pill -->
+    <Style x:Key="Pill" TargetType="Border">
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="Padding" Value="10,2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!-- Illuminated round pushbutton, base template. Background = lamp colour. -->
+    <Style x:Key="LampButton" TargetType="Button">
+        <Setter Property="Width" Value="78" />
+        <Setter Property="Height" Value="78" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Margin" Value="0,0,12,0" />
+        <Setter Property="Background" Value="{StaticResource Idle}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Ellipse Fill="{StaticResource BezelBrush}">
+                            <Ellipse.Effect>
+                                <DropShadowEffect BlurRadius="10" ShadowDepth="3" Direction="270" Opacity="0.55" Color="#000000" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Margin="6" Stroke="#20000000" StrokeThickness="1">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush GradientOrigin="0.4,0.32" Center="0.5,0.5" RadiusX="0.65" RadiusY="0.65">
+                                    <GradientStop Color="#80FFFFFF" Offset="0" />
+                                    <GradientStop Color="#00FFFFFF" Offset="0.55" />
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+                        <Ellipse x:Name="lamp" Margin="6" Fill="{TemplateBinding Background}" Opacity="0.92" />
+                        <Ellipse x:Name="glow" Margin="6" Fill="{TemplateBinding Background}" Opacity="0">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="14" />
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="glow" Property="Opacity" Value="0.5" />
+                            <Setter TargetName="lamp" Property="Opacity" Value="1" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="lamp" Property="Opacity" Value="0.7" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="lamp" Property="Opacity" Value="0.25" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="StartButton" TargetType="Button" BasedOn="{StaticResource LampButton}">
+        <Setter Property="Background" Value="{StaticResource Run}" />
+    </Style>
+    <Style x:Key="StopButton" TargetType="Button" BasedOn="{StaticResource LampButton}">
+        <Setter Property="Background" Value="{StaticResource Fault}" />
+    </Style>
+    <Style x:Key="ResetButton" TargetType="Button" BasedOn="{StaticResource LampButton}">
+        <Setter Property="Background" Value="{StaticResource Warn}" />
+    </Style>
+    <Style x:Key="HoldButton" TargetType="Button" BasedOn="{StaticResource LampButton}">
+        <Setter Property="Background" Value="{StaticResource Accent}" />
+    </Style>
+
+    <!-- Equipment housing tile on the conveyor -->
+    <Style x:Key="EquipmentTile" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource PanelGradient}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="10" />
+        <Setter Property="Width" Value="132" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Opacity="0.4" Color="#000000" />
+            </Setter.Value>
+        </Setter>
     </Style>
 
 </ResourceDictionary>

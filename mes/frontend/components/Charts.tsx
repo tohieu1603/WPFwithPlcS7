@@ -8,6 +8,7 @@ import {
   Bar,
   LineChart,
   Line,
+  ComposedChart,
   PieChart,
   Pie,
   XAxis,
@@ -20,7 +21,7 @@ import {
   Cell,
 } from "recharts";
 import { Empty } from "antd";
-import type { Kpi, Station, ProductionRecord } from "@/lib/types";
+import type { Kpi, Station, ProductionRecord, OeePoint, ShiftOee } from "@/lib/types";
 
 export function ProductionTrend({ history }: { history: Kpi[] }) {
   if (!history.length) return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data yet" />;
@@ -193,6 +194,123 @@ export function ThroughputTrend({ history }: { history: Kpi[] }) {
         <Line yAxisId="l" type="monotone" dataKey="Throughput" stroke="#1677ff" dot={false} strokeWidth={2} />
         <Line yAxisId="r" type="monotone" dataKey="FPY" stroke="#52c41a" dot={false} strokeWidth={2} />
       </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** OEE and its three factors over time. */
+export function OeeTrend({ history }: { history: OeePoint[] }) {
+  if (!history.length) return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data yet" />;
+  const data = history.map((h) => ({
+    t: new Date(h.t).toLocaleTimeString(),
+    OEE: h.overall, Availability: h.availability, Performance: h.performance, Quality: h.quality,
+  }));
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <LineChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis dataKey="t" tick={{ fontSize: 11 }} minTickGap={40} />
+        <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="OEE" stroke="#1677ff" dot={false} strokeWidth={3} />
+        <Line type="monotone" dataKey="Availability" stroke="#52c41a" dot={false} strokeWidth={1.5} />
+        <Line type="monotone" dataKey="Performance" stroke="#faad14" dot={false} strokeWidth={1.5} />
+        <Line type="monotone" dataKey="Quality" stroke="#722ed1" dot={false} strokeWidth={1.5} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Generic SPC control chart: samples with mean and 3-sigma control limits. */
+export function SpcChart({
+  values, mean, ucl, lcl, unit = "", color = "#1677ff", domain,
+}: {
+  values: number[]; mean: number; ucl: number; lcl: number;
+  unit?: string; color?: string; domain?: [number, number];
+}) {
+  if (!values.length) return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data" />;
+  const data = values.map((v, i) => ({ i: i + 1, v: Number(v.toFixed(3)) }));
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <LineChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis dataKey="i" tick={{ fontSize: 11 }} />
+        <YAxis domain={domain ?? ["auto", "auto"]} tick={{ fontSize: 11 }} unit={unit} />
+        <Tooltip />
+        <ReferenceLine y={ucl} stroke="#ff4d4f" strokeDasharray="5 4" label={{ value: "UCL", fontSize: 10, fill: "#ff4d4f" }} />
+        <ReferenceLine y={lcl} stroke="#ff4d4f" strokeDasharray="5 4" label={{ value: "LCL", fontSize: 10, fill: "#ff4d4f" }} />
+        <ReferenceLine y={mean} stroke="#52c41a" label={{ value: "x̄", fontSize: 11, fill: "#52c41a" }} />
+        <Line type="monotone" dataKey="v" name="value" stroke={color} dot={{ r: 2 }} strokeWidth={2} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Pareto: reason counts (bars) plus a cumulative-percent line. */
+export function ParetoChart({
+  data, countName = "Count", unit = "",
+}: {
+  data: { reason: string; count: number }[]; countName?: string; unit?: string;
+}) {
+  if (!data.length || data.every((d) => d.count === 0))
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data" />;
+  const sorted = [...data].sort((a, b) => b.count - a.count);
+  const total = sorted.reduce((s, d) => s + d.count, 0) || 1;
+  let cum = 0;
+  const rows = sorted.map((d) => {
+    cum += d.count;
+    return { reason: d.reason, count: d.count, cum: Math.round((cum / total) * 100) };
+  });
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <ComposedChart data={rows} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis dataKey="reason" tick={{ fontSize: 10 }} interval={0} angle={-12} textAnchor="end" height={50} />
+        <YAxis yAxisId="l" tick={{ fontSize: 11 }} allowDecimals={false} unit={unit} />
+        <YAxis yAxisId="r" orientation="right" domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
+        <Tooltip />
+        <Legend />
+        <Bar yAxisId="l" dataKey="count" name={countName} fill="#ff7a45" radius={[4, 4, 0, 0]} />
+        <Line yAxisId="r" type="monotone" dataKey="cum" name="Cumulative %" stroke="#1677ff" strokeWidth={2} dot={{ r: 2 }} />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** OEE and factors compared across work shifts (grouped bars). */
+export function OeeByShift({ rows }: { rows: ShiftOee[] }) {
+  if (!rows.length || rows.every((r) => r.samples === 0))
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No shift data yet" />;
+  return (
+    <ResponsiveContainer width="100%" height={280}>
+      <BarChart data={rows} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis dataKey="shift" tick={{ fontSize: 11 }} />
+        <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="availability" name="Availability" fill="#52c41a" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="performance" name="Performance" fill="#faad14" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="quality" name="Quality" fill="#722ed1" radius={[3, 3, 0, 0]} />
+        <Bar dataKey="overall" name="OEE" fill="#1677ff" radius={[3, 3, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/** Alarm event counts per station (horizontal bars). */
+export function AlarmsByStation({ data }: { data: { station: string; count: number }[] }) {
+  if (!data.length) return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No alarm events" />;
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(160, data.length * 34)}>
+      <BarChart layout="vertical" data={data} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+        <YAxis type="category" dataKey="station" width={56} tick={{ fontSize: 11 }} />
+        <Tooltip />
+        <Bar dataKey="count" name="Events" fill="#fa8c16" radius={[0, 4, 4, 0]} />
+      </BarChart>
     </ResponsiveContainer>
   );
 }

@@ -26,6 +26,9 @@ public sealed class PlcConnection
     public short Rack { get; set; } = 0;
     public short Slot { get; set; } = 1;
     public int ScanMs { get; set; } = 250;
+    // Default S7 port 102; override with PLC_PORT to dodge a busy 102 (e.g. a Siemens service).
+    public int Port { get; set; } =
+        int.TryParse(Environment.GetEnvironmentVariable("PLC_PORT"), out var p) ? p : 102;
 
     public LinkState State { get; private set; } = LinkState.Disconnected;
     public event Action<PlcImage>? Updated;
@@ -61,7 +64,7 @@ public sealed class PlcConnection
             if (!_ep.IsConnected)
             {
                 SetState(LinkState.Connecting);
-                if (!_ep.Open(Cpu, Host, Rack, Slot)) { Thread.Sleep(1000); continue; }
+                if (!_ep.Open(Cpu, Host, Port, Rack, Slot)) { Thread.Sleep(1000); continue; }
                 SetState(LinkState.Connected);
             }
 

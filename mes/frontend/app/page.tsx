@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Row, Col, Card, Statistic, Tag, Table, List, Empty, Progress, Badge } from "antd";
-import { getDashboard, getKpiHistory } from "@/lib/api";
-import { ProductionTrend, RejectPareto, ThroughputTrend, PassFailDonut, StationCycleChart } from "@/components/Charts";
+import { getDashboard, getKpiHistory, getOeeHistory, getOeeByShift } from "@/lib/api";
+import { ProductionTrend, RejectPareto, ThroughputTrend, PassFailDonut, StationCycleChart, OeeTrend, OeeByShift } from "@/components/Charts";
 import { StationFlow } from "@/components/StationFlow";
 import type { ProductionRecord } from "@/lib/types";
 
@@ -24,6 +24,8 @@ function MiniGauge({ title, value }: { title: string; value: number }) {
 export default function DashboardPage() {
   const { data } = useQuery({ queryKey: ["dashboard"], queryFn: getDashboard });
   const { data: history } = useQuery({ queryKey: ["kpiHistory"], queryFn: () => getKpiHistory(40) });
+  const { data: oeeHistory } = useQuery({ queryKey: ["oeeHistory"], queryFn: () => getOeeHistory(40) });
+  const { data: oeeShift } = useQuery({ queryKey: ["oeeByShift"], queryFn: getOeeByShift });
 
   const s = data?.state;
   const k = data?.kpi;
@@ -116,6 +118,20 @@ export default function DashboardPage() {
       <Card title="Process flow" size="small" style={{ marginBottom: 16 }}>
         <StationFlow stations={data?.stations ?? []} running={running} />
       </Card>
+
+      {/* OEE trend + by shift */}
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col xs={24} lg={14}>
+          <Card title="OEE trend (Availability / Performance / Quality)" size="small">
+            <OeeTrend history={oeeHistory ?? []} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={10}>
+          <Card title="OEE by shift" size="small">
+            <OeeByShift rows={oeeShift ?? []} />
+          </Card>
+        </Col>
+      </Row>
 
       {/* trend */}
       <Card title="Production trend (Good vs Reject)" size="small" style={{ marginBottom: 16 }}>

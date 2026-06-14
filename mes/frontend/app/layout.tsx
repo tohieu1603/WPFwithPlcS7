@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MES - Vision Line",
+  title: "Vision Line © To Hieu",
   description: "Manufacturing Execution System for the vision and barcode line",
 };
 

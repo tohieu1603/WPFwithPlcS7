@@ -53,6 +53,7 @@ export interface AlarmRow {
   description: string;
   active: boolean;
   raisedAt: string;
+  clearedAt?: string | null;
 }
 
 export interface Recipe {
@@ -86,4 +87,81 @@ export interface Dashboard {
   activeAlarms: AlarmRow[];
   stations: Station[];
   oee: Oee;
+}
+
+export interface OeePoint {
+  t: string;
+  availability: number;
+  performance: number;
+  quality: number;
+  overall: number;
+}
+
+export interface SpcStats {
+  mean: number;
+  sigma: number;
+  ucl: number;
+  lcl: number;
+  min: number;
+  max: number;
+}
+
+export interface QualityData {
+  records: ProductionRecord[];
+  count: number;
+  passRate: number;
+  score: SpcStats;
+  gap: SpcStats;
+  gradeDist: { grade: string; count: number }[];
+  pareto: { reason: string; count: number }[];
+}
+
+export interface AlarmStats {
+  activeCount: number;
+  totalEvents: number;
+  byPriority: Record<string, number>;
+  byStation: { station: string; count: number }[];
+  avgDurationSec: number;
+}
+
+export interface ShiftOee {
+  shift: string;
+  availability: number;
+  performance: number;
+  quality: number;
+  overall: number;
+  throughput: number;
+  samples: number;
+}
+
+export interface DowntimeRow {
+  cause: string;
+  station: string;
+  downtimeSec: number;
+  count: number;
+}
+
+export interface ProductCount {
+  product: string;
+  count: number;
+}
+
+export interface WhereUsed {
+  units: ProductionRecord[];
+  total: number;
+  pass: number;
+  fail: number;
+  rework: number;
+}
+
+export interface StationStep {
+  code: string;
+  name: string;
+  status: string;
+  detail: string;
+}
+
+export interface RecordDetail {
+  record: ProductionRecord;
+  timeline: StationStep[];
 }

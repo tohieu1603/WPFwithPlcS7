@@ -1,15 +1,22 @@
+using System;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using VisionHmi.Generated;
 using VisionHmi.Plc;
 
 namespace VisionHmi.ViewModels;
 
-/// <summary>Live inspection screen: barcode identify, vision result, mark &amp; verify,
-/// plus the current unit's traceability fields.</summary>
+/// <summary>One inspected unit captured as it leaves the line (for the history table).</summary>
+public record InspectionRecord(string Time, string Serial, string Product, double Score, string Grade, string Disposition, string Reason);
+
+/// <summary>Live inspection screen: barcode identify, vision result, mark &amp; verify, the
+/// current unit's traceability fields, a rolling history and a reject breakdown.</summary>
 public partial class InspectionViewModel : LiveViewModel
 {
     private static readonly string[] Grades = { "F", "D", "C", "B", "A", "A+" };
     private static readonly string[] Disp = { "IN-PROCESS", "PASS", "FAIL", "REWORK" };
+
+    private string _lastSerial = "";
 
     // Barcode (ST20)
     [ObservableProperty] private bool _bcrReadOk;
@@ -36,11 +43,21 @@ public partial class InspectionViewModel : LiveViewModel
     [ObservableProperty] private string _curProduct = "";
     [ObservableProperty] private string _dispositionText = "—";
 
+    // Totals / summary
+    [ObservableProperty] private int _good;
+    [ObservableProperty] private int _reject;
+    [ObservableProperty] private int _total;
+    [ObservableProperty] private double _fpy;
+    [ObservableProperty] private double _passRate;
+
     // Reject breakdown
     [ObservableProperty] private int _rejVision;
     [ObservableProperty] private int _rejBarcode;
     [ObservableProperty] private int _rejVerify;
     [ObservableProperty] private int _rejAssembly;
+
+    /// <summary>Last units that left the line, newest first.</summary>
+    public ObservableCollection<InspectionRecord> Recent { get; } = new();
 
     public InspectionViewModel(PlcConnection plc) : base(plc) { }
 
@@ -68,11 +85,35 @@ public partial class InspectionViewModel : LiveViewModel
         int d = img.Int(Tag.Cur_Disposition);
         DispositionText = d >= 0 && d < Disp.Length ? Disp[d] : "—";
 
+        Good = img.DInt(Tag.Good_Count);
+        Reject = img.DInt(Tag.Reject_Count);
+        Total = img.DInt(Tag.Total_Count);
+        Fpy = img.Real(Tag.FirstPassYield);
+        PassRate = Total > 0 ? Good * 100.0 / Total : 0;
+
         RejVision = img.DInt(Tag.Rej_Vision);
         RejBarcode = img.DInt(Tag.Rej_Barcode);
         RejVerify = img.DInt(Tag.Rej_Verify);
         RejAssembly = img.DInt(Tag.Rej_Assembly);
+
+        CaptureCompletedUnit(d);
     }
+
+    /// <summary>When a unit finishes (PLC holds serial+disposition stable), log it once.</summary>
+    private void CaptureCompletedUnit(int d)
+    {
+        if (d == 0 || string.IsNullOrEmpty(CurSerial) || CurSerial == _lastSerial) return;
+        _lastSerial = CurSerial;
+
+        string reason = d == 2 ? FailReason() : "";
+        Recent.Insert(0, new InspectionRecord(
+            DateTime.Now.ToString("HH:mm:ss"), CurSerial, CurProduct, VisScore, VerifyGrade,
+            DispositionText, reason));
+        while (Recent.Count > 14) Recent.RemoveAt(Recent.Count - 1);
+    }
+
+    private string FailReason() =>
+        VisFail ? "Vision" : BcrNoRead ? "Barcode" : !VerifyMatch ? "Verify" : "Assembly";
 
     private static string GradeText(int g) => g >= 0 && g < Grades.Length ? Grades[g] : "—";
 }

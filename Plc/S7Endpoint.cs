@@ -13,13 +13,13 @@ public sealed class S7Endpoint
 
     public bool IsConnected => _plc?.IsConnected ?? false;
 
-    public bool Open(CpuType cpu, string ip, short rack, short slot)
+    public bool Open(CpuType cpu, string ip, int port, short rack, short slot)
     {
         try
         {
-            _plc = new S7.Net.Plc(cpu, ip, rack, slot);
+            _plc = new S7.Net.Plc(cpu, ip, port, rack, slot);
             _plc.Open();
-            if (_plc.IsConnected) _log.LogInformation("S7 connected {Ip} rack {Rack}/slot {Slot}", ip, rack, slot);
+            if (_plc.IsConnected) _log.LogInformation("S7 connected {Ip}:{Port} rack {Rack}/slot {Slot}", ip, port, rack, slot);
             return _plc.IsConnected;
         }
         catch (Exception ex)

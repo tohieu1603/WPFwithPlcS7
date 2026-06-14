@@ -23,11 +23,17 @@ public partial class StationViewModel : ObservableObject
     [ObservableProperty] private bool _fault;
     [ObservableProperty] private bool _present;
     [ObservableProperty] private int _count;
+    [ObservableProperty] private double _cycleTime;
     [ObservableProperty] private string _status = "IDLE";
+    [ObservableProperty] private string _phase = "PENDING";   // PASSED | ACTIVE | PENDING (set by the line)
+    [ObservableProperty] private bool _lineRunning;           // drives the belt animation
+
+    public int Index { get; }
 
     public StationViewModel(string code, string name, PlcConnection plc)
     {
         Code = code; Name = name; _plc = plc;
+        Index = Array.FindIndex(Defs, d => d.Code == code);
     }
 
     public void Update(PlcImage img)
@@ -37,6 +43,7 @@ public partial class StationViewModel : ObservableObject
         Fault = img.Bool(Ref("Fault"));
         Present = img.Bool(Ref("PartPresent"));
         Count = img.DInt(Ref("Count"));
+        CycleTime = img.Real(Ref("CycleTime"));
         Status = Fault ? "FAULT" : (Run || Busy) ? "RUN" : "IDLE";
     }
 

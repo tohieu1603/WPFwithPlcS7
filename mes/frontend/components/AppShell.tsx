@@ -8,6 +8,7 @@ import {
   ProfileOutlined,
   AlertOutlined,
   ExperimentOutlined,
+  DeploymentUnitOutlined,
 } from "@ant-design/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,6 +20,7 @@ const items = [
   { key: "/stations", icon: <ApartmentOutlined />, label: <Link href="/stations">Stations</Link> },
   { key: "/quality", icon: <LineChartOutlined />, label: <Link href="/quality">Quality</Link> },
   { key: "/records", icon: <ProfileOutlined />, label: <Link href="/records">Production Records</Link> },
+  { key: "/genealogy", icon: <DeploymentUnitOutlined />, label: <Link href="/genealogy">Genealogy</Link> },
   { key: "/alarms", icon: <AlertOutlined />, label: <Link href="/alarms">Alarms</Link> },
   { key: "/recipes", icon: <ExperimentOutlined />, label: <Link href="/recipes">Recipes</Link> },
 ];
@@ -44,7 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             fontWeight: 600,
           }}
         >
-          Vision &amp; Barcode Line - MES
+          Vision Line © To Hieu
         </Header>
         <Content style={{ margin: 24 }}>{children}</Content>
       </Layout>

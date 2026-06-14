@@ -7,4 +7,9 @@
     <c:DispositionToBrush x:Key="DispositionToBrush" />
     <c:BoolToText x:Key="BoolToText" />
     <c:CountToVisibility x:Key="CountToVisibility" />
+    <c:BoolToVisibility x:Key="BoolToVisibility" />
+    <c:StateToBrush x:Key="StateToBrush" />
+    <c:PhaseToBrush x:Key="PhaseToBrush" />
+    <c:StationIconConverter x:Key="StationIcon" />
+    <c:RingGeometryConverter x:Key="RingGeometry" />
 </ResourceDictionary>

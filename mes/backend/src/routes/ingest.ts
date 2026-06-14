@@ -79,7 +79,7 @@ ingestRouter.post("/alarms", async (req, res) => {
 
   const current = await repo.findBy({ active: true });
   for (const row of current) {
-    if (!names.includes(row.name)) { row.active = false; await repo.save(row); }
+    if (!names.includes(row.name)) { row.active = false; row.clearedAt = new Date(); await repo.save(row); }
   }
   for (const a of incoming) {
     const exists = current.find((c) => c.name === a.name && c.active);

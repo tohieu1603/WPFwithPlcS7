@@ -1,111 +1,314 @@
 <UserControl x:Class="VisionHmi.Views.OverviewView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:v="clr-namespace:VisionHmi.Views">
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+             xmlns:v="clr-namespace:VisionHmi.Views"
+             xmlns:ctl="clr-namespace:VisionHmi.Controls">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <!-- PackML control bar -->
-        <Border Grid.Row="0" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
-            <Grid>
+            <!-- ===== Control panel (cabinet) ===== -->
+            <Border Grid.Row="0" Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- state + lamps -->
+                    <StackPanel Grid.Column="0" Margin="0,0,28,0">
+                        <TextBlock Text="MACHINE STATE" Style="{StaticResource Caption}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <Ellipse Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,10,0"
+                                     Fill="{Binding StateText, Converter={StaticResource StateToBrush}}" />
+                            <TextBlock Text="{Binding StateText}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,12">
+                            <Border Style="{StaticResource Pill}" Background="{StaticResource Input}">
+                                <TextBlock Text="{Binding ModeText}" Foreground="{StaticResource TextSecondary}" FontSize="11" FontWeight="SemiBold" />
+                            </Border>
+                            <TextBlock Text="{Binding LineRate, StringFormat='{}{0:F1} ppm'}" Style="{StaticResource Caption}"
+                                       VerticalAlignment="Center" Margin="10,0,0,0" />
+                        </StackPanel>
+                        <!-- indicator lamps -->
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Margin="0,0,16,0">
+                                <Ellipse Width="13" Height="13" HorizontalAlignment="Center"
+                                         Fill="{Binding Running, Converter={StaticResource BoolToBrush}}" />
+                                <TextBlock Text="RUN" Style="{StaticResource Caption}" FontSize="9" HorizontalAlignment="Center" Margin="0,3,0,0" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,16,0">
+                                <Ellipse Width="13" Height="13" HorizontalAlignment="Center"
+                                         Fill="{Binding RejectBinFull, Converter={StaticResource BoolToBrush}, ConverterParameter=fault}" />
+                                <TextBlock Text="BIN" Style="{StaticResource Caption}" FontSize="9" HorizontalAlignment="Center" Margin="0,3,0,0" />
+                            </StackPanel>
+                            <StackPanel>
+                                <Grid Width="13" Height="13" HorizontalAlignment="Center">
+                                    <Ellipse Fill="{StaticResource Idle}" />
+                                    <Ellipse Fill="{StaticResource Fault}" Visibility="{Binding ActiveAlarms, Converter={StaticResource CountToVisibility}}" />
+                                </Grid>
+                                <TextBlock Text="ALM" Style="{StaticResource Caption}" FontSize="9" HorizontalAlignment="Center" Margin="0,3,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- mode + secondary commands -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0">
+                        <WrapPanel>
+                            <TextBlock Text="MODE" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <Button Content="PRODUCTION"  Command="{Binding ModeProductionCommand}"  Style="{StaticResource CmdBtn}" />
+                            <Button Content="MAINTENANCE" Command="{Binding ModeMaintenanceCommand}" Style="{StaticResource CmdBtn}" />
+                            <Button Content="MANUAL"      Command="{Binding ModeManualCommand}"      Style="{StaticResource CmdBtn}" />
+                        </WrapPanel>
+                        <WrapPanel Margin="0,10,0,0">
+                            <Button Content="UNHOLD" Command="{Binding UnholdCommand}" Style="{StaticResource CmdBtn}" />
+                            <Button Content="ABORT"  Command="{Binding AbortCommand}"  Style="{StaticResource DangerBtn}" />
+                            <Button Content="CLEAR"  Command="{Binding ClearCommand}"  Style="{StaticResource CmdBtn}" />
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <!-- cabinet illuminated pushbuttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <StackPanel>
+                            <Button Command="{Binding StartCommand}" Style="{StaticResource StartButton}" Content="START" />
+                            <TextBlock Text="I" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel>
+                            <Button Command="{Binding StopCommand}" Style="{StaticResource StopButton}" Content="STOP" />
+                            <TextBlock Text="O" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel>
+                            <Button Command="{Binding HoldCommand}" Style="{StaticResource HoldButton}" Content="HOLD" />
+                            <TextBlock Text=" " HorizontalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel>
+                            <Button Command="{Binding ResetCommand}" Style="{StaticResource ResetButton}" Content="RESET" />
+                            <TextBlock Text=" " HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ===== Conveyor mimic ===== -->
+            <TextBlock Grid.Row="1" Text="PROCESS FLOW — RAW PART travels INFEED → IDENTIFY → ASSEMBLY → VISION → MARKING → VERIFY → REJECT/OUTFEED"
+                       Style="{StaticResource Caption}" Margin="2,0,0,8" />
+            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="14,16" Margin="0,0,0,12">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Horizontal">
+                        <!-- raw part feeder -->
+                        <Border Width="60" Height="62" CornerRadius="6" VerticalAlignment="Center" Margin="0,0,4,0"
+                                Background="{StaticResource Input}" BorderBrush="{StaticResource Border}" BorderThickness="1">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="RAW" Foreground="{StaticResource TextSecondary}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" />
+                                <TextBlock Text="PART" Foreground="{StaticResource TextSecondary}" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                        <ItemsControl ItemsSource="{Binding Stations}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate><v:StationControl /></DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- ===== Live scan + inspection + KPI ===== -->
+            <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="320" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,24,0">
-                    <TextBlock Text="MACHINE STATE" Style="{StaticResource Caption}" />
-                    <TextBlock Text="{Binding StateText}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" />
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <TextBlock Text="{Binding ModeText}" Style="{StaticResource Caption}" Margin="0,0,12,0" />
-                        <TextBlock Text="{Binding LineRate, StringFormat='{}{0:F1} ppm'}" Style="{StaticResource Caption}" />
-                    </StackPanel>
-                </StackPanel>
-                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                    <WrapPanel>
-                        <Button Content="RESET"  Command="{Binding ResetCommand}"  Style="{StaticResource CmdBtn}" />
-                        <Button Content="START"  Command="{Binding StartCommand}"  Style="{StaticResource PrimaryBtn}" />
-                        <Button Content="STOP"   Command="{Binding StopCommand}"   Style="{StaticResource CmdBtn}" />
-                        <Button Content="HOLD"   Command="{Binding HoldCommand}"   Style="{StaticResource CmdBtn}" />
-                        <Button Content="UNHOLD" Command="{Binding UnholdCommand}" Style="{StaticResource CmdBtn}" />
-                        <Button Content="ABORT"  Command="{Binding AbortCommand}"  Style="{StaticResource DangerBtn}" />
-                        <Button Content="CLEAR"  Command="{Binding ClearCommand}"  Style="{StaticResource CmdBtn}" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,8,0,0">
-                        <TextBlock Text="MODE:" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <Button Content="PRODUCTION"  Command="{Binding ModeProductionCommand}"  Style="{StaticResource CmdBtn}" />
-                        <Button Content="MAINTENANCE" Command="{Binding ModeMaintenanceCommand}" Style="{StaticResource CmdBtn}" />
-                        <Button Content="MANUAL"      Command="{Binding ModeManualCommand}"      Style="{StaticResource CmdBtn}" />
-                    </WrapPanel>
-                </StackPanel>
-            </Grid>
-        </Border>
 
-        <TextBlock Grid.Row="1" Text="LINE STATIONS (part flow →)" Style="{StaticResource Caption}" Margin="2,0,0,8" />
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Stations}">
-                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate><DataTemplate><v:StationControl /></DataTemplate></ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                <!-- left: traceability callouts + KPI -->
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <UniformGrid Columns="4">
+                        <!-- IDENTIFY -->
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,8">
+                                    <Path Data="{StaticResource IconScan}" Fill="{StaticResource AccentLight}" Width="16" Height="16" DockPanel.Dock="Left" Stretch="Uniform" />
+                                    <TextBlock Text="IDENTIFY · ST20" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <Border Background="White" CornerRadius="3" Padding="6,5">
+                                    <ctl:BarcodeControl Text="{Binding BarcodeData}" BarBrush="Black" Height="40" />
+                                </Border>
+                                <TextBlock Text="{Binding BarcodeData}" FontFamily="Consolas" FontSize="13" Foreground="{StaticResource TextPrimary}"
+                                           Margin="0,6,0,0" TextTrimming="CharacterEllipsis" />
+                                <Grid Margin="0,6,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="11" Height="11" VerticalAlignment="Center" Margin="0,0,6,0"
+                                                 Fill="{Binding BarcodeOk, Converter={StaticResource BoolToBrush}}" />
+                                        <TextBlock Text="{Binding BarcodeOk, Converter={StaticResource BoolToText}, ConverterParameter='READ OK|NO-READ'}"
+                                                   Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding BarcodeGrade, StringFormat='GR {0}'}" HorizontalAlignment="Right"
+                                               Foreground="{StaticResource TextSecondary}" FontSize="11" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
 
-        <!-- KPI -->
-        <Grid Grid.Row="3" Margin="0,12,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="300" />
-            </Grid.ColumnDefinitions>
-            <UniformGrid Grid.Column="0" Rows="1" Margin="0,0,12,0">
-                <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
-                    <StackPanel>
-                        <TextBlock Text="GOOD" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding Good}" Style="{StaticResource Value}" FontSize="22" Foreground="{StaticResource Run}" />
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
-                    <StackPanel>
-                        <TextBlock Text="REJECT" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding Reject}" Style="{StaticResource Value}" FontSize="22" Foreground="{StaticResource Fault}" />
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
-                    <StackPanel>
-                        <TextBlock Text="FIRST-PASS YIELD" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding Fpy, StringFormat='{}{0:F0}%'}" Style="{StaticResource Value}" FontSize="22" />
-                        <ProgressBar Value="{Binding Fpy}" Style="{StaticResource Bar}" Margin="0,6,0,0" />
-                    </StackPanel>
-                </Border>
-                <Border Style="{StaticResource CardBorder}">
-                    <StackPanel>
-                        <TextBlock Text="THROUGHPUT" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding Throughput, StringFormat='{}{0:F0}'}" Style="{StaticResource Value}" FontSize="22" />
-                        <TextBlock Text="parts/hour" Style="{StaticResource Caption}" />
-                    </StackPanel>
-                </Border>
-            </UniformGrid>
-            <Border Grid.Column="1" Style="{StaticResource CardBorder}">
-                <StackPanel>
-                    <TextBlock Text="UTILITIES" Style="{StaticResource Caption}" Margin="0,0,0,8" />
-                    <Grid Margin="0,0,0,8">
-                        <TextBlock Text="Reject bin" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding RejectBin}" HorizontalAlignment="Right" FontFamily="Consolas"
-                                   Foreground="{Binding RejectBinFull, Converter={StaticResource BoolToBrush}, ConverterParameter=fault}" />
-                    </Grid>
-                    <Grid Margin="0,0,0,10">
-                        <TextBlock Text="Air pressure" Style="{StaticResource Caption}" />
-                        <TextBlock Text="{Binding AirPressure, StringFormat='{}{0:F2} bar'}" HorizontalAlignment="Right"
-                                   Foreground="{StaticResource TextPrimary}" FontFamily="Consolas" />
-                    </Grid>
-                    <UniformGrid Columns="2">
-                        <Button Content="CLEAR COUNTERS" Command="{Binding ClearCountersCommand}" Style="{StaticResource CmdBtn}" />
-                        <Button Content="EMPTY BIN" Command="{Binding EmptyRejectBinCommand}" Style="{StaticResource CmdBtn}" />
+                        <!-- VISION -->
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,8">
+                                    <Path Data="{StaticResource IconVision}" Fill="{StaticResource AccentLight}" Width="16" Height="16" DockPanel.Dock="Left" Stretch="Uniform" />
+                                    <TextBlock Text="VISION · ST40" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <Border CornerRadius="3" Padding="0,9" Background="{Binding VisionPass, Converter={StaticResource BoolToBrush}}">
+                                    <TextBlock Text="{Binding VisionPass, Converter={StaticResource BoolToText}, ConverterParameter='PASS|FAIL'}"
+                                               FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" />
+                                </Border>
+                                <Grid Margin="0,10,0,0">
+                                    <TextBlock Text="Match" Style="{StaticResource Caption}" />
+                                    <TextBlock Text="{Binding VisionScore, StringFormat='{}{0:F1}%'}" HorizontalAlignment="Right"
+                                               Style="{StaticResource Value}" FontSize="13" />
+                                </Grid>
+                                <Grid Margin="0,6,0,0">
+                                    <TextBlock Text="Gap" Style="{StaticResource Caption}" />
+                                    <TextBlock Text="{Binding Gap, StringFormat='{}{0:F3} mm'}" HorizontalAlignment="Right"
+                                               Foreground="{StaticResource TextPrimary}" FontFamily="Consolas" FontSize="12" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- MARK & TRACE -->
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <DockPanel Margin="0,0,0,8">
+                                    <Path Data="{StaticResource IconChip}" Fill="{StaticResource AccentLight}" Width="16" Height="16" DockPanel.Dock="Left" Stretch="Uniform" />
+                                    <TextBlock Text="MARK · ST50" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <Border Background="White" CornerRadius="3" Padding="6" HorizontalAlignment="Center">
+                                    <ctl:MatrixCodeControl Text="{Binding MarkedSerial}" ModuleBrush="Black" Width="74" Height="74" />
+                                </Border>
+                                <TextBlock Text="{Binding MarkedSerial}" FontFamily="Consolas" FontSize="12" Foreground="{StaticResource TextPrimary}"
+                                           Margin="0,6,0,0" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
+                                    <Ellipse Width="11" Height="11" VerticalAlignment="Center" Margin="0,0,6,0"
+                                             Fill="{Binding VerifyMatch, Converter={StaticResource BoolToBrush}}" />
+                                    <TextBlock Text="{Binding VerifyMatch, Converter={StaticResource BoolToText}, ConverterParameter='VERIFY OK|MISMATCH'}"
+                                               Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- CURRENT UNIT -->
+                        <Border Style="{StaticResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="CURRENT UNIT" Style="{StaticResource Caption}" Margin="0,0,0,8" />
+                                <TextBlock Text="{Binding CurrentSerial}" FontFamily="Consolas" FontSize="18" FontWeight="Bold"
+                                           Foreground="{StaticResource TextPrimary}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding CurrentProduct}" Style="{StaticResource Caption}" Margin="0,2,0,10" />
+                                <Border Style="{StaticResource Pill}" Padding="14,6" HorizontalAlignment="Left"
+                                        Background="{Binding DispositionText, Converter={StaticResource DispositionToBrush}}">
+                                    <TextBlock Text="{Binding DispositionText}" Foreground="White" FontWeight="Bold" FontSize="14" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- KPI row -->
+                    <UniformGrid Columns="4" Margin="0,12,0,0">
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Path Data="{StaticResource IconGood}" Fill="{StaticResource Run}" Width="18" Height="18" DockPanel.Dock="Left" Stretch="Uniform" />
+                                    <TextBlock Text="GOOD" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding Good}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Run}" FontFamily="Consolas" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Path Data="{StaticResource IconReject}" Fill="{StaticResource Fault}" Width="18" Height="18" DockPanel.Dock="Left" Stretch="Uniform" />
+                                    <TextBlock Text="REJECT" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding Reject}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource Fault}" FontFamily="Consolas" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Path Data="{StaticResource IconThroughput}" Fill="{StaticResource AccentLight}" Width="18" Height="18" DockPanel.Dock="Left" Stretch="Uniform" />
+                                    <TextBlock Text="THROUGHPUT" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding Throughput, StringFormat='{}{0:F0}'}" FontSize="26" FontWeight="Bold"
+                                           Foreground="{StaticResource TextPrimary}" FontFamily="Consolas" Margin="0,6,0,0" />
+                                <TextBlock Text="parts/hour" Style="{StaticResource Caption}" />
+                            </StackPanel>
+                        </Border>
+                        <!-- FPY ring gauge -->
+                        <Border Style="{StaticResource CardBorder}">
+                            <StackPanel>
+                                <DockPanel>
+                                    <Path Data="{StaticResource IconYield}" Fill="{StaticResource Warn}" Width="18" Height="18" DockPanel.Dock="Left" Stretch="Uniform" />
+                                    <TextBlock Text="FIRST-PASS YIELD" Style="{StaticResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </DockPanel>
+                                <Grid Width="116" Height="116" Margin="0,6,0,0">
+                                    <Ellipse Width="104" Height="104" Stroke="{StaticResource RingTrack}" StrokeThickness="10" />
+                                    <Path Stroke="{StaticResource Run}" StrokeThickness="10" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                          Data="{Binding Fpy, Converter={StaticResource RingGeometry}}" />
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding Fpy, StringFormat='{}{0:F0}%'}" FontSize="24" FontWeight="Bold"
+                                                   Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center" />
+                                        <TextBlock Text="YIELD" Style="{StaticResource Caption}" FontSize="9" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </UniformGrid>
                 </StackPanel>
-            </Border>
+
+                <!-- right: live trend + utilities -->
+                <StackPanel Grid.Column="1">
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="LIVE TREND — THROUGHPUT" Style="{StaticResource Caption}" />
+                            <Border Background="{StaticResource Input}" CornerRadius="4" Padding="6" Margin="0,8,0,0" Height="78">
+                                <Polyline Points="{Binding TrendPoints}" Stretch="Fill"
+                                          Stroke="{StaticResource AccentLight}" StrokeThickness="2"
+                                          StrokeLineJoin="Round" />
+                            </Border>
+                            <TextBlock Text="{Binding Throughput, StringFormat='now {0:F0} parts/hour'}" Style="{StaticResource Caption}" Margin="0,6,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" Margin="0,12,0,0">
+                        <StackPanel>
+                            <TextBlock Text="UTILITIES" Style="{StaticResource Caption}" Margin="0,0,0,10" />
+                            <Grid Margin="0,0,0,8">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IconBin}" Fill="{StaticResource TextSecondary}" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                                    <TextBlock Text="Reject bin" Style="{StaticResource Caption}" Margin="6,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding RejectBin}" HorizontalAlignment="Right" FontFamily="Consolas"
+                                           Foreground="{Binding RejectBinFull, Converter={StaticResource BoolToBrush}, ConverterParameter=fault}" />
+                            </Grid>
+                            <Grid Margin="0,0,0,12">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource IconAir}" Fill="{StaticResource TextSecondary}" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center" />
+                                    <TextBlock Text="Air pressure" Style="{StaticResource Caption}" Margin="6,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding AirPressure, StringFormat='{}{0:F2} bar'}" HorizontalAlignment="Right"
+                                           Foreground="{StaticResource TextPrimary}" FontFamily="Consolas" />
+                            </Grid>
+                            <UniformGrid Columns="2">
+                                <Button Content="CLEAR COUNTERS" Command="{Binding ClearCountersCommand}" Style="{StaticResource CmdBtn}" />
+                                <Button Content="EMPTY BIN" Command="{Binding EmptyRejectBinCommand}" Style="{StaticResource CmdBtn}" />
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
         </Grid>
-    </Grid>
+    </ScrollViewer>
 </UserControl>

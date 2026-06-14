@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import express from "express";
 import cors from "cors";
-import fs from "fs";
 import { AppDataSource } from "./data-source";
 import { Recipe } from "./entities/Recipe";
 import { ingestRouter } from "./routes/ingest";
@@ -9,6 +8,8 @@ import { dashboardRouter } from "./routes/dashboard";
 import { recordsRouter } from "./routes/records";
 import { alarmsRouter } from "./routes/alarms";
 import { recipesRouter } from "./routes/recipes";
+import { qualityRouter } from "./routes/quality";
+import { genealogyRouter } from "./routes/genealogy";
 
 const PORT = Number(process.env.PORT || 4000);
 
@@ -24,7 +25,6 @@ async function seedRecipes() {
 }
 
 async function main() {
-  fs.mkdirSync("data", { recursive: true });
   await AppDataSource.initialize();
   await seedRecipes();
 
@@ -38,6 +38,8 @@ async function main() {
   app.use("/api/records", recordsRouter);
   app.use("/api/alarms", alarmsRouter);
   app.use("/api/recipes", recipesRouter);
+  app.use("/api/quality", qualityRouter);
+  app.use("/api/genealogy", genealogyRouter);
 
   app.listen(PORT, () => console.log(`MES backend listening on http://localhost:${PORT}`));
 }

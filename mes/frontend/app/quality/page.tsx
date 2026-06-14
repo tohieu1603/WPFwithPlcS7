@@ -2,52 +2,65 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Row, Col, Card, Statistic } from "antd";
-import { getRecords } from "@/lib/api";
-import { VisionScoreTrend, GapTrend, GradeDistribution } from "@/components/Charts";
+import { getQuality } from "@/lib/api";
+import { SpcChart, ParetoChart, GradeDistribution } from "@/components/Charts";
 
 export default function QualityPage() {
-  const { data } = useQuery({
-    queryKey: ["qualityRecords"],
-    queryFn: () => getRecords({ page: 1, pageSize: 60 }),
-  });
-  const recs = data?.rows ?? [];
-  const pass = recs.filter((r) => r.disposition === "PASS").length;
-  const passRate = recs.length ? (pass / recs.length) * 100 : 0;
-  const avgScore = recs.length ? recs.reduce((s, r) => s + r.visionScore, 0) / recs.length : 0;
+  const { data } = useQuery({ queryKey: ["quality"], queryFn: () => getQuality(120) });
+
+  const recs = data?.records ?? [];
+  const scores = recs.filter((r) => r.visionScore > 0).map((r) => r.visionScore);
+  const gaps = recs.filter((r) => r.gap > 0).map((r) => r.gap);
+  const score = data?.score;
+  const gap = data?.gap;
 
   return (
     <div>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={12} md={6}>
-          <Card size="small"><Statistic title="Sampled units" value={recs.length} /></Card>
+          <Card size="small"><Statistic title="Sampled units" value={data?.count ?? 0} /></Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card size="small"><Statistic title="Pass rate" value={passRate} precision={1} suffix="%" /></Card>
+          <Card size="small"><Statistic title="Pass rate" value={data?.passRate ?? 0} precision={1} suffix="%" /></Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card size="small"><Statistic title="Avg vision score" value={avgScore} precision={1} suffix="%" /></Card>
+          <Card size="small"><Statistic title="Vision mean" value={score?.mean ?? 0} precision={1} suffix="%" /></Card>
         </Col>
         <Col xs={12} md={6}>
-          <Card size="small"><Statistic title="Total in DB" value={data?.total ?? 0} /></Card>
+          <Card size="small">
+            <Statistic title="Gap mean ± 3σ" value={gap?.mean ?? 0} precision={3} suffix="mm" />
+            <div style={{ color: "#999", fontSize: 12 }}>σ {(gap?.sigma ?? 0).toFixed(3)} · {(gap?.lcl ?? 0).toFixed(3)}–{(gap?.ucl ?? 0).toFixed(3)}</div>
+          </Card>
         </Col>
       </Row>
 
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col xs={24} lg={12}>
-          <Card title="Vision match score (last 60 units)" size="small">
-            <VisionScoreTrend records={recs} />
+          <Card title="Vision score — SPC control chart" size="small">
+            <SpcChart values={scores} mean={score?.mean ?? 0} ucl={score?.ucl ?? 0} lcl={score?.lcl ?? 0}
+              unit="%" color="#1677ff" domain={[70, 100]} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="Gap measurement - SPC band" size="small">
-            <GapTrend records={recs} />
+          <Card title="Gap measurement — SPC control chart" size="small">
+            <SpcChart values={gaps} mean={gap?.mean ?? 0} ucl={gap?.ucl ?? 0} lcl={gap?.lcl ?? 0}
+              unit="mm" color="#722ed1" />
           </Card>
         </Col>
       </Row>
 
-      <Card title="Print grade distribution" size="small">
-        <GradeDistribution records={recs} />
-      </Card>
+      <Row gutter={16}>
+        <Col xs={24} lg={12}>
+          <Card title="Reject Pareto (cumulative)" size="small">
+            <ParetoChart data={data?.pareto ?? []} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card title="Print grade distribution" size="small">
+            <GradeDistribution records={recs} />
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }

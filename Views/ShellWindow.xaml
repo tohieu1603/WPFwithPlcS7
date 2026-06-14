@@ -3,10 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:VisionHmi.ViewModels"
         xmlns:v="clr-namespace:VisionHmi.Views"
-        Title="Vision &amp; Barcode Line — SCADA HMI" Height="860" Width="1320"
+        Title="Vision Line © To Hieu" Height="860" Width="1320"
         MinHeight="640" MinWidth="1080"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource Bg}" FontFamily="Segoe UI">
+        Background="{StaticResource BgGradient}" FontFamily="Segoe UI">
 
     <Window.Resources>
         <DataTemplate DataType="{x:Type vm:OverviewViewModel}"><v:OverviewView /></DataTemplate>
@@ -31,18 +31,38 @@
                     <TextBlock Text="PackML · Track &amp; Trace" Style="{StaticResource Caption}" Margin="0,3,0,0" />
                 </StackPanel>
                 <StackPanel Grid.Row="1" Margin="0,8,0,0">
-                    <RadioButton Content="Overview" Style="{StaticResource NavBtn}" IsChecked="True" Command="{Binding NavOverviewCommand}" />
-                    <RadioButton Content="Inspection" Style="{StaticResource NavBtn}" Command="{Binding NavInspectionCommand}" />
+                    <RadioButton Style="{StaticResource NavBtn}" IsChecked="True" Command="{Binding NavOverviewCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconOverview}" Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            <TextBlock Text="Overview" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource NavBtn}" Command="{Binding NavInspectionCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconInspection}" Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            <TextBlock Text="Inspection" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
                     <RadioButton Style="{StaticResource NavBtn}" Command="{Binding NavAlarmsCommand}">
-                        <Grid Width="150">
-                            <TextBlock Text="Alarms" />
-                            <Border HorizontalAlignment="Right" Background="{StaticResource Fault}" CornerRadius="8" MinWidth="18" Height="16" Padding="4,0"
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconAlarms}" Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            <TextBlock Text="Alarms" Margin="12,0,0,0" VerticalAlignment="Center" />
+                            <Border Background="{StaticResource Fault}" CornerRadius="8" MinWidth="18" Height="16" Padding="4,0" Margin="10,0,0,0" VerticalAlignment="Center"
                                     Visibility="{Binding Alarms.ActiveCount, Converter={StaticResource CountToVisibility}}">
                                 <TextBlock Text="{Binding Alarms.ActiveCount}" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                        </Grid>
+                        </StackPanel>
                     </RadioButton>
-                    <RadioButton Content="Recipe" Style="{StaticResource NavBtn}" Command="{Binding NavRecipeCommand}" />
+                    <RadioButton Style="{StaticResource NavBtn}" Command="{Binding NavRecipeCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IconRecipe}" Width="17" Height="17" Stretch="Uniform" VerticalAlignment="Center"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            <TextBlock Text="Recipe" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
                 </StackPanel>
                 <Border Grid.Row="2" Padding="16" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0">
                     <StackPanel Orientation="Horizontal">
@@ -61,10 +81,14 @@
             <Border Grid.Row="0" Background="{StaticResource Panel}" BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1">
                 <Grid Margin="16,0">
                     <TextBlock Text="{Binding ActiveNav}" Style="{StaticResource H1}" VerticalAlignment="Center" />
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <TextBlock Text="STATE" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <TextBlock Text="{Binding Overview.StateText}" Foreground="{StaticResource TextPrimary}" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    </StackPanel>
+                    <Border HorizontalAlignment="Right" VerticalAlignment="Center" CornerRadius="9" Padding="12,5" Background="{StaticResource Input}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="11" Height="11" VerticalAlignment="Center"
+                                     Fill="{Binding Overview.StateText, Converter={StaticResource StateToBrush}}" />
+                            <TextBlock Text="{Binding Overview.StateText}" Foreground="{StaticResource TextPrimary}" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
             <ContentControl Grid.Row="1" Content="{Binding Current}" />

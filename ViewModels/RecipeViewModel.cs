@@ -22,6 +22,8 @@ public partial class RecipeViewModel : LiveViewModel
 
     [ObservableProperty] private double _activeGapNominal;
     [ObservableProperty] private double _activeVisionMinScore;
+    [ObservableProperty] private string _status = "Ready";
+    [ObservableProperty] private bool _dirty;
 
     public RecipeViewModel(PlcConnection plc) : base(plc) { }
 
@@ -39,6 +41,7 @@ public partial class RecipeViewModel : LiveViewModel
         GapTol = img.Real(Tag.Gap_Tol);
         VisionMinScore = img.Real(Tag.Vision_MinScore);
         BarcodeMinGrade = img.Int(Tag.Barcode_MinGrade);
+        Dirty = false;
     }
 
     [RelayCommand]
@@ -52,7 +55,44 @@ public partial class RecipeViewModel : LiveViewModel
         Plc.WriteReal(Tag.Gap_Tol, (float)GapTol);
         Plc.WriteReal(Tag.Vision_MinScore, (float)VisionMinScore);
         Plc.WriteInt(Tag.Barcode_MinGrade, (short)BarcodeMinGrade);
+        Dirty = false;
+        Status = $"Downloaded to PLC at {System.DateTime.Now:HH:mm:ss}";
     }
 
-    [RelayCommand] private void Reload() => _loaded = false;
+    [RelayCommand]
+    private void Reload()
+    {
+        _loaded = false;
+        Dirty = false;
+        Status = $"Reloaded from PLC at {System.DateTime.Now:HH:mm:ss}";
+    }
+
+    /// <summary>Load a built-in model preset into the editor (not yet downloaded).</summary>
+    [RelayCommand]
+    private void ApplyPreset(string model)
+    {
+        switch (model)
+        {
+            case "A": Set(1, 30, 1200, 2.5, 0.50, 0.10, 90, 2); break;
+            case "B": Set(2, 28, 1500, 3.0, 0.60, 0.12, 92, 2); break;
+            case "C": Set(3, 35, 900, 2.0, 0.45, 0.08, 88, 2); break;
+        }
+        Dirty = true;
+        Status = $"Loaded preset MODEL-{model} — press DOWNLOAD to apply";
+    }
+
+    private void Set(int no, double cyc, double press, double torque, double gap, double tol, double score, int grade)
+    {
+        RecipeNumber = no; CycleTarget = cyc; PressForce = press; ScrewTorque = torque;
+        GapNominal = gap; GapTol = tol; VisionMinScore = score; BarcodeMinGrade = grade;
+    }
+
+    partial void OnRecipeNumberChanged(int value) => Dirty = true;
+    partial void OnCycleTargetChanged(double value) => Dirty = true;
+    partial void OnPressForceChanged(double value) => Dirty = true;
+    partial void OnScrewTorqueChanged(double value) => Dirty = true;
+    partial void OnGapNominalChanged(double value) => Dirty = true;
+    partial void OnGapTolChanged(double value) => Dirty = true;
+    partial void OnVisionMinScoreChanged(double value) => Dirty = true;
+    partial void OnBarcodeMinGradeChanged(int value) => Dirty = true;
 }

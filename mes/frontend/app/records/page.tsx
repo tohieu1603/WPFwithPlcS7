@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
-  Card, Table, Input, Select, Space, Tag, Button, Drawer, Descriptions, Badge, Typography,
+  Card, Table, Input, Select, Space, Tag, Button, Drawer, Descriptions, Badge, Typography, Timeline, Divider,
 } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
-import { getRecords } from "@/lib/api";
+import { getRecords, getRecordDetail } from "@/lib/api";
 import type { ProductionRecord } from "@/lib/types";
+
+const stepColor = (s: string) =>
+  s === "done" ? "green" : s === "fail" ? "red" : s === "warn" ? "gold" : "blue";
 
 const dispColor = (d: string) => (d === "PASS" ? "success" : d === "FAIL" ? "error" : "warning");
 
@@ -37,6 +40,12 @@ export default function RecordsPage() {
     queryKey: ["records", page, pageSize, disposition, search],
     queryFn: () => getRecords({ page, pageSize, disposition, search: search || undefined }),
     placeholderData: keepPreviousData,
+  });
+
+  const { data: detail } = useQuery({
+    queryKey: ["recordDetail", selected?.serial],
+    queryFn: () => getRecordDetail(selected!.serial),
+    enabled: !!selected,
   });
 
   const columns = [
@@ -104,23 +113,38 @@ export default function RecordsPage() {
         onClose={() => setSelected(null)}
       >
         {selected && (
-          <Descriptions column={1} bordered size="small">
-            <Descriptions.Item label="Serial">{selected.serial}</Descriptions.Item>
-            <Descriptions.Item label="Product">{selected.product}</Descriptions.Item>
-            <Descriptions.Item label="Barcode (ST20)">{selected.barcode || "-"}</Descriptions.Item>
-            <Descriptions.Item label="Vision (ST40)">
-              <Tag color={selected.visionPass ? "success" : "error"}>{selected.visionPass ? "PASS" : "FAIL"}</Tag>
-              {" "}score {selected.visionScore.toFixed(1)} %
-            </Descriptions.Item>
-            <Descriptions.Item label="Gap (VF03)">{selected.gap.toFixed(3)} mm</Descriptions.Item>
-            <Descriptions.Item label="Bore (VF04)">{selected.bore.toFixed(3)} mm</Descriptions.Item>
-            <Descriptions.Item label="Print grade (ST60)">{selected.grade || "-"}</Descriptions.Item>
-            <Descriptions.Item label="Disposition">
-              <Tag color={dispColor(selected.disposition)}>{selected.disposition}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Fail reason">{selected.failReason || "-"}</Descriptions.Item>
-            <Descriptions.Item label="Timestamp">{new Date(selected.createdAt).toLocaleString()}</Descriptions.Item>
-          </Descriptions>
+          <>
+            <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="Serial">{selected.serial}</Descriptions.Item>
+              <Descriptions.Item label="Product">{selected.product}</Descriptions.Item>
+              <Descriptions.Item label="Barcode (ST20)">{selected.barcode || "-"}</Descriptions.Item>
+              <Descriptions.Item label="Vision (ST40)">
+                <Tag color={selected.visionPass ? "success" : "error"}>{selected.visionPass ? "PASS" : "FAIL"}</Tag>
+                {" "}score {selected.visionScore.toFixed(1)} %
+              </Descriptions.Item>
+              <Descriptions.Item label="Gap (VF03)">{selected.gap.toFixed(3)} mm</Descriptions.Item>
+              <Descriptions.Item label="Bore (VF04)">{selected.bore.toFixed(3)} mm</Descriptions.Item>
+              <Descriptions.Item label="Print grade (ST60)">{selected.grade || "-"}</Descriptions.Item>
+              <Descriptions.Item label="Disposition">
+                <Tag color={dispColor(selected.disposition)}>{selected.disposition}</Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Fail reason">{selected.failReason || "-"}</Descriptions.Item>
+              <Descriptions.Item label="Timestamp">{new Date(selected.createdAt).toLocaleString()}</Descriptions.Item>
+            </Descriptions>
+
+            <Divider titlePlacement="left" style={{ marginTop: 24 }}>Process genealogy</Divider>
+            <Timeline
+              items={(detail?.timeline ?? []).map((s) => ({
+                color: stepColor(s.status),
+                children: (
+                  <>
+                    <Typography.Text strong>{s.code} · {s.name}</Typography.Text>
+                    <div style={{ color: "#888", fontSize: 13 }}>{s.detail}</div>
+                  </>
+                ),
+              }))}
+            />
+          </>
         )}
       </Drawer>
     </Card>

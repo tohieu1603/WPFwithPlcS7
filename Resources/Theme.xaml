@@ -14,9 +14,37 @@
     <SolidColorBrush x:Key="TextMuted"     Color="#6E7880" />
 
     <SolidColorBrush x:Key="Accent"        Color="#4F7FB0" />
+    <SolidColorBrush x:Key="AccentLight"   Color="#6FA0D0" />
     <SolidColorBrush x:Key="Run"           Color="#3FA34D" />
     <SolidColorBrush x:Key="Fault"         Color="#D14B4B" />
     <SolidColorBrush x:Key="Warn"          Color="#D7A23B" />
     <SolidColorBrush x:Key="Idle"          Color="#5A636B" />
+
+    <!-- Mimic: conveyor, belt fill, equipment housing, part token -->
+    <SolidColorBrush x:Key="ConveyorBody"  Color="#41494F" />
+    <SolidColorBrush x:Key="ConveyorEdge"  Color="#5B656C" />
+    <SolidColorBrush x:Key="BeltDash"      Color="#737E86" />
+    <SolidColorBrush x:Key="RingTrack"     Color="#2A2F34" />
+    <SolidColorBrush x:Key="PartToken"     Color="#E0A33B" />
+
+    <!-- Gradients for depth -->
+    <LinearGradientBrush x:Key="BgGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#262B30" Offset="0" />
+        <GradientStop Color="#2E343A" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="CardGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#414951" Offset="0" />
+        <GradientStop Color="#383F46" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PanelGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#363D43" Offset="0" />
+        <GradientStop Color="#2F353B" Offset="1" />
+    </LinearGradientBrush>
+
+    <!-- Cabinet pushbutton metal bezel -->
+    <RadialGradientBrush x:Key="BezelBrush" GradientOrigin="0.35,0.3" Center="0.5,0.5" RadiusX="0.7" RadiusY="0.7">
+        <GradientStop Color="#6A747C" Offset="0" />
+        <GradientStop Color="#3A4147" Offset="1" />
+    </RadialGradientBrush>
 
 </ResourceDictionary>

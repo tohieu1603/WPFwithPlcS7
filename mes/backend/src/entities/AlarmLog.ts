@@ -24,4 +24,7 @@ export class AlarmLog {
 
   @CreateDateColumn()
   raisedAt!: Date;
+
+  @Column("timestamp", { nullable: true })
+  clearedAt!: Date | null;
 }
