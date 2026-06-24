@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Windows;
 using Microsoft.Extensions.Logging;
-using S7.Net;
 using VisionHmi.Generated;
 
 namespace VisionHmi.Plc;
@@ -9,26 +8,40 @@ namespace VisionHmi.Plc;
 public enum LinkState { Disconnected, Connecting, Connected }
 
 /// <summary>
-/// Owns the S7 link on a dedicated background thread: reads STATUS/RECIPE/KPI/ALARM
-/// every scan and raises <see cref="Updated"/> on the UI thread; command writes are
-/// queued and executed by the worker. The UI never performs S7 I/O, so it never blocks.
+/// Owns the Modbus TCP link on a dedicated background thread: reads STATUS/RECIPE/KPI/ALARM
+/// every scan and raises <see cref="Updated"/> on the UI thread; command writes are queued
+/// and executed by the worker. The UI never performs I/O, so it never blocks.
 /// </summary>
 public sealed class PlcConnection
 {
+    // Holding-register base for each DB block (generated from tags.py — single source of truth).
+    private static readonly IReadOnlyDictionary<int, int> RegBase = new Dictionary<int, int>
+    {
+        { Db.Command, Db.RegBaseCommand },
+        { Db.Status,  Db.RegBaseStatus },
+        { Db.Recipe,  Db.RegBaseRecipe },
+        { Db.Kpi,     Db.RegBaseKpi },
+        { Db.Alarm,   Db.RegBaseAlarm },
+    };
+
     private readonly ILogger<PlcConnection> _log;
-    private readonly S7Endpoint _ep;
+    private readonly ModbusEndpoint _ep;
     private readonly ConcurrentQueue<Action> _writes = new();
     private Thread? _worker;
     private volatile bool _run;
 
-    public string Host { get; set; } = "127.0.0.1";
-    public CpuType Cpu { get; set; } = CpuType.S71500;
-    public short Rack { get; set; } = 0;
-    public short Slot { get; set; } = 1;
-    public int ScanMs { get; set; } = 250;
-    // Default S7 port 102; override with PLC_PORT to dodge a busy 102 (e.g. a Siemens service).
+    // Modbus target. Override Host with PLC_HOST, port with PLC_PORT, unit id with PLC_UNIT.
+    public string Host { get; set; } = Environment.GetEnvironmentVariable("PLC_HOST") ?? "127.0.0.1";
+    // Standard Modbus TCP port 502; override with PLC_PORT (e.g. 1502 for a non-privileged test).
     public int Port { get; set; } =
-        int.TryParse(Environment.GetEnvironmentVariable("PLC_PORT"), out var p) ? p : 102;
+        int.TryParse(Environment.GetEnvironmentVariable("PLC_PORT"), out var p) ? p : 502;
+    public byte UnitId { get; set; } =
+        byte.TryParse(Environment.GetEnvironmentVariable("PLC_UNIT"), out var u) ? u : (byte)1;
+    public int ScanMs { get; set; } = 250;
+    // How long a Pulse() holds the command bit high before clearing it. Long enough that the
+    // PLC's cyclic scan reliably catches the rising edge; override with PLC_PULSE_MS.
+    public int PulseHoldMs { get; set; } =
+        int.TryParse(Environment.GetEnvironmentVariable("PLC_PULSE_MS"), out var ms) ? ms : 200;
 
     public LinkState State { get; private set; } = LinkState.Disconnected;
     public event Action<PlcImage>? Updated;
@@ -37,7 +50,7 @@ public sealed class PlcConnection
     public PlcConnection(ILogger<PlcConnection> log)
     {
         _log = log;
-        _ep = new S7Endpoint(log);
+        _ep = new ModbusEndpoint(log, RegBase);
     }
 
     public void Start()
@@ -64,7 +77,7 @@ public sealed class PlcConnection
             if (!_ep.IsConnected)
             {
                 SetState(LinkState.Connecting);
-                if (!_ep.Open(Cpu, Host, Port, Rack, Slot)) { Thread.Sleep(1000); continue; }
+                if (!_ep.Open(Host, Port, UnitId)) { Thread.Sleep(1000); continue; }
                 SetState(LinkState.Connected);
             }
 
@@ -80,31 +93,51 @@ public sealed class PlcConnection
 
     private PlcImage? ReadAll()
     {
-        var dbs = new Dictionary<int, byte[]>(4);
+        var dbs = new Dictionary<int, ushort[]>(4);
         foreach (var (db, size) in new[] { (Db.Status, Db.SizeStatus), (Db.Recipe, Db.SizeRecipe),
                                            (Db.Kpi, Db.SizeKpi), (Db.Alarm, Db.SizeAlarm) })
         {
-            var b = _ep.Read(db, 0, size);
-            if (b == null) return null;
-            dbs[db] = b;
+            var r = _ep.ReadRegs(db, 0, size);
+            if (r == null) return null;
+            dbs[db] = r;
         }
         return new PlcImage(dbs);
     }
 
-    // ---- command writes (executed on the worker thread) ----
-    public void Pulse(TagRef t) => WriteBit(t, true);
+    // ---- command writes (executed on the worker thread), in whole 16-bit registers ----
 
-    public void WriteBit(TagRef t, bool on) => _writes.Enqueue(() =>
+    /// <summary>Momentary command: set the bit, hold it briefly so the PLC scan reliably
+    /// catches the rising edge, then clear it back to 0. A true "nhấp" pulse — not
+    /// set-and-hold — so the button works on every press even if the PLC never self-resets
+    /// the bit. The brief Thread.Sleep runs on the worker thread, so the UI never blocks.</summary>
+    public void Pulse(TagRef t) => _writes.Enqueue(() =>
     {
-        var cur = _ep.Read(t.Db, t.Byte, 1);
-        if (cur == null) return;
-        if (on) cur[0] |= (byte)(1 << t.Bit);
-        else cur[0] &= (byte)~(1 << t.Bit);
-        _ep.Write(t.Db, t.Byte, cur);
+        if (!SetBit(t, true)) return;     // set the edge
+        Thread.Sleep(PulseHoldMs);        // hold so the PLC sees it
+        SetBit(t, false);                 // and release it
     });
 
-    public void WriteReal(TagRef t, float v) => _writes.Enqueue(() => _ep.Write(t.Db, t.Byte, S7Codec.Real(v)));
-    public void WriteInt(TagRef t, short v) => _writes.Enqueue(() => _ep.Write(t.Db, t.Byte, S7Codec.Int(v)));
+    public void WriteBit(TagRef t, bool on) => _writes.Enqueue(() => SetBit(t, on));
+
+    /// <summary>Read-modify-write a single bit so the other bits in the register are preserved.</summary>
+    private bool SetBit(TagRef t, bool on)
+    {
+        var cur = _ep.ReadRegs(t.Db, t.Reg, 1);
+        if (cur == null) return false;
+        ushort w = cur[0];
+        if (on) w |= (ushort)(1 << t.Bit);
+        else    w &= (ushort)~(1 << t.Bit);
+        return _ep.WriteRegs(t.Db, t.Reg, new[] { w });
+    }
+
+    public void WriteInt(TagRef t, short v) => _writes.Enqueue(() => _ep.WriteRegs(t.Db, t.Reg, new[] { (ushort)v }));
+
+    public void WriteReal(TagRef t, float v) => _writes.Enqueue(() =>
+    {
+        var b = new byte[4];
+        System.Buffers.Binary.BinaryPrimitives.WriteSingleBigEndian(b, v);   // high word first
+        _ep.WriteRegs(t.Db, t.Reg, new[] { (ushort)((b[0] << 8) | b[1]), (ushort)((b[2] << 8) | b[3]) });
+    });
 
     private void SetState(LinkState s)
     {

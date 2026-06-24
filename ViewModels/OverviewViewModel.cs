@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VisionHmi.Generated;
 using VisionHmi.Plc;
+using VisionHmi.Stores;
 
 namespace VisionHmi.ViewModels;
 
@@ -59,8 +60,11 @@ public partial class OverviewViewModel : LiveViewModel
     [ObservableProperty] private int _activeAlarms;
     [ObservableProperty] private PointCollection _trendPoints = new();
 
-    public OverviewViewModel(PlcConnection plc) : base(plc)
+    private readonly AuthStore _auth;
+
+    public OverviewViewModel(PlcConnection plc, AuthStore auth) : base(plc)
     {
+        _auth = auth;
         foreach (var (code, name) in StationViewModel.Defs)
             Stations.Add(new StationViewModel(code, name, plc));
     }
@@ -143,16 +147,39 @@ public partial class OverviewViewModel : LiveViewModel
 
     private static string GradeText(int g) => g >= 0 && g < Grades.Length ? Grades[g] : "—";
 
-    [RelayCommand] private void Reset() => Plc.Pulse(Tag.Cmd_Reset);
-    [RelayCommand] private void Start() => Plc.Pulse(Tag.Cmd_Start);
-    [RelayCommand] private void Stop() => Plc.Pulse(Tag.Cmd_Stop);
-    [RelayCommand] private void Hold() => Plc.Pulse(Tag.Cmd_Hold);
-    [RelayCommand] private void Unhold() => Plc.Pulse(Tag.Cmd_Unhold);
-    [RelayCommand] private void Abort() => Plc.Pulse(Tag.Cmd_Abort);
-    [RelayCommand] private void Clear() => Plc.Pulse(Tag.Cmd_Clear);
-    [RelayCommand] private void ModeProduction() => Plc.Pulse(Tag.Cmd_ModeProduction);
-    [RelayCommand] private void ModeMaintenance() => Plc.Pulse(Tag.Cmd_ModeMaintenance);
-    [RelayCommand] private void ModeManual() => Plc.Pulse(Tag.Cmd_ModeManual);
-    [RelayCommand] private void ClearCounters() => Plc.Pulse(Tag.Cmd_ClearCounters);
-    [RelayCommand] private void EmptyRejectBin() => Plc.Pulse(Tag.Cmd_EmptyRejectBin);
+    // ---- PackML control. Disruptive commands ask for confirmation; destructive/safety
+    //      commands also require the Admin role. Routine run commands go straight through. ----
+    [RelayCommand] private void Reset() => Send("RESET", Tag.Cmd_Reset);
+    [RelayCommand] private void Start() => Send("START", Tag.Cmd_Start);
+    [RelayCommand] private void Stop() => Send("STOP", Tag.Cmd_Stop, confirm: true);
+    [RelayCommand] private void Hold() => Send("HOLD", Tag.Cmd_Hold);
+    [RelayCommand] private void Unhold() => Send("UNHOLD", Tag.Cmd_Unhold);
+    [RelayCommand] private void Abort() => Send("ABORT", Tag.Cmd_Abort, confirm: true, adminOnly: true);
+    [RelayCommand] private void Clear() => Send("CLEAR", Tag.Cmd_Clear);
+    [RelayCommand] private void ModeProduction() => Send("MODE: PRODUCTION", Tag.Cmd_ModeProduction);
+    [RelayCommand] private void ModeMaintenance() => Send("MODE: MAINTENANCE", Tag.Cmd_ModeMaintenance, confirm: true, adminOnly: true);
+    [RelayCommand] private void ModeManual() => Send("MODE: MANUAL", Tag.Cmd_ModeManual, confirm: true, adminOnly: true);
+    [RelayCommand] private void ClearCounters() => Send("CLEAR COUNTERS", Tag.Cmd_ClearCounters, confirm: true, adminOnly: true);
+    [RelayCommand] private void EmptyRejectBin() => Send("EMPTY REJECT BIN", Tag.Cmd_EmptyRejectBin, confirm: true);
+
+    /// <summary>Gate a control command before it reaches the PLC: Admin-only commands are
+    /// blocked for operators, and disruptive commands ask for confirmation first. Only when
+    /// both checks pass is the momentary pulse sent.</summary>
+    private void Send(string label, TagRef cmd, bool confirm = false, bool adminOnly = false)
+    {
+        if (adminOnly && !_auth.IsAdmin)
+        {
+            MessageBox.Show(
+                $"Lệnh \"{label}\" yêu cầu quyền Admin.\nTài khoản hiện tại có quyền: {_auth.CurrentUser?.Role ?? "—"}.",
+                "Không đủ quyền", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (confirm &&
+            MessageBox.Show($"Xác nhận thực hiện lệnh \"{label}\"?", "Xác nhận lệnh",
+                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            return;
+
+        Plc.Pulse(cmd);
+    }
 }
