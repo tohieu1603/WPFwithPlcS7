@@ -9,10 +9,10 @@ namespace VisionHmi.ViewModels;
 public partial class StationViewModel : ObservableObject
 {
     public static readonly (string Code, string Name)[] Defs =
-    {
+    [
         ("ST10", "Infeed"), ("ST20", "Identify"), ("ST30", "Assembly"), ("ST40", "Vision"),
         ("ST50", "Marking"), ("ST60", "Verify"), ("ST70", "Reject"), ("ST80", "Outfeed"),
-    };
+    ];
 
     private readonly PlcConnection _plc;
     public string Code { get; }

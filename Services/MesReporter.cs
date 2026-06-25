@@ -14,13 +14,13 @@ namespace VisionHmi.Services;
 public sealed class MesReporter
 {
     private static readonly string[] PmlNames =
-    {
+    [
         "-", "CLEARING", "STOPPED", "STARTING", "IDLE", "SUSPENDED", "EXECUTE", "STOPPING",
         "ABORTING", "ABORTED", "HOLDING", "HELD", "UNHOLDING", "SUSPENDING", "UNSUSPENDING",
         "RESETTING", "COMPLETING", "COMPLETE"
-    };
-    private static readonly string[] ModeNames = { "-", "PRODUCTION", "MAINTENANCE", "MANUAL" };
-    private static readonly string[] Grades = { "F", "D", "C", "B", "A", "A+" };
+    ];
+    private static readonly string[] ModeNames = ["-", "PRODUCTION", "MAINTENANCE", "MANUAL"];
+    private static readonly string[] Grades = ["F", "D", "C", "B", "A", "A+"];
 
     private readonly HttpClient _http;
     private readonly ILogger<MesReporter> _log;
@@ -107,7 +107,7 @@ public sealed class MesReporter
 
     private static object[] Stations(PlcImage img)
     {
-        var list = new List<object>();
+        List<object> list = [];
         foreach (var (code, name) in ViewModels.StationViewModel.Defs)
         {
             bool fault = img.Bool(Tag.ByName[$"{code}_Fault"]);
@@ -127,8 +127,8 @@ public sealed class MesReporter
 
     private static object[] ActiveAlarms(PlcImage img)
     {
-        int[] words = { img.Word(Tag.Alarm_Word0), img.Word(Tag.Alarm_Word1) };
-        var list = new List<object>();
+        int[] words = [img.Word(Tag.Alarm_Word0), img.Word(Tag.Alarm_Word1)];
+        List<object> list = [];
         foreach (var a in AlarmCatalog.All)
             if ((words[a.Word] & (1 << a.Bit)) != 0)
                 list.Add(new { name = a.Name, priority = a.Priority, station = a.Station, description = a.Description });

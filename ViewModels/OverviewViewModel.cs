@@ -15,19 +15,19 @@ namespace VisionHmi.ViewModels;
 public partial class OverviewViewModel : LiveViewModel
 {
     private static readonly string[] PmlNames =
-    {
+    [
         "—", "CLEARING", "STOPPED", "STARTING", "IDLE", "SUSPENDED", "EXECUTE", "STOPPING",
         "ABORTING", "ABORTED", "HOLDING", "HELD", "UNHOLDING", "SUSPENDING", "UNSUSPENDING",
         "RESETTING", "COMPLETING", "COMPLETE"
-    };
-    private static readonly string[] ModeNames = { "—", "PRODUCTION", "MAINTENANCE", "MANUAL" };
-    private static readonly string[] Disp = { "IN-PROCESS", "PASS", "FAIL", "REWORK" };
-    private static readonly string[] Grades = { "F", "D", "C", "B", "A", "A+" };
+    ];
+    private static readonly string[] ModeNames = ["—", "PRODUCTION", "MAINTENANCE", "MANUAL"];
+    private static readonly string[] Disp = ["IN-PROCESS", "PASS", "FAIL", "REWORK"];
+    private static readonly string[] Grades = ["F", "D", "C", "B", "A", "A+"];
 
     private const int TrendWidth = 300, TrendHeight = 64, TrendSamples = 90;
-    private readonly List<double> _trend = new();
+    private readonly List<double> _trend = [];
 
-    public ObservableCollection<StationViewModel> Stations { get; } = new();
+    public ObservableCollection<StationViewModel> Stations { get; } = [];
 
     [ObservableProperty] private string _stateText = "—";
     [ObservableProperty] private string _modeText = "—";
@@ -58,7 +58,7 @@ public partial class OverviewViewModel : LiveViewModel
     [ObservableProperty] private int _rejectBin;
     [ObservableProperty] private bool _rejectBinFull;
     [ObservableProperty] private int _activeAlarms;
-    [ObservableProperty] private PointCollection _trendPoints = new();
+    [ObservableProperty] private PointCollection _trendPoints = [];
 
     private readonly AuthStore _auth;
 

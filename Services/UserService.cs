@@ -6,15 +6,11 @@ using VisionHmi.Data;
 namespace VisionHmi.Services;
 
 /// <summary>CRUD operations on users for the admin "Users" screen.</summary>
-public sealed class UserService
+public sealed class UserService(IDbContextFactory<AppDbContext> dbf)
 {
-    private readonly IDbContextFactory<AppDbContext> _dbf;
-
-    public UserService(IDbContextFactory<AppDbContext> dbf) => _dbf = dbf;
-
     public async Task<List<User>> GetAll()
     {
-        await using var db = await _dbf.CreateDbContextAsync();
+        await using var db = await dbf.CreateDbContextAsync();
         return await db.Users.OrderBy(u => u.Id).ToListAsync();
     }
 
@@ -23,7 +19,7 @@ public sealed class UserService
         if (string.IsNullOrWhiteSpace(username)) return (false, "Chưa nhập tên đăng nhập");
         if (string.IsNullOrEmpty(password)) return (false, "Chưa nhập mật khẩu");
 
-        await using var db = await _dbf.CreateDbContextAsync();
+        await using var db = await dbf.CreateDbContextAsync();
         if (await db.Users.AnyAsync(u => u.Username == username)) return (false, "Trùng tên đăng nhập");
 
         db.Users.Add(new User
@@ -40,7 +36,7 @@ public sealed class UserService
     /// <summary>Update full name + role; only resets the password when <paramref name="newPassword"/> is non-empty.</summary>
     public async Task<(bool ok, string error)> Update(int id, string fullName, string role, string? newPassword)
     {
-        await using var db = await _dbf.CreateDbContextAsync();
+        await using var db = await dbf.CreateDbContextAsync();
         var u = await db.Users.FindAsync(id);
         if (u is null) return (false, "Không tìm thấy người dùng");
 
@@ -53,7 +49,7 @@ public sealed class UserService
 
     public async Task<(bool ok, string error)> Delete(int id)
     {
-        await using var db = await _dbf.CreateDbContextAsync();
+        await using var db = await dbf.CreateDbContextAsync();
         var u = await db.Users.FindAsync(id);
         if (u is null) return (false, "Không tìm thấy người dùng");
 

@@ -13,8 +13,8 @@ public record InspectionRecord(string Time, string Serial, string Product, doubl
 /// current unit's traceability fields, a rolling history and a reject breakdown.</summary>
 public partial class InspectionViewModel : LiveViewModel
 {
-    private static readonly string[] Grades = { "F", "D", "C", "B", "A", "A+" };
-    private static readonly string[] Disp = { "IN-PROCESS", "PASS", "FAIL", "REWORK" };
+    private static readonly string[] Grades = ["F", "D", "C", "B", "A", "A+"];
+    private static readonly string[] Disp = ["IN-PROCESS", "PASS", "FAIL", "REWORK"];
 
     private string _lastSerial = "";
 
@@ -57,7 +57,7 @@ public partial class InspectionViewModel : LiveViewModel
     [ObservableProperty] private int _rejAssembly;
 
     /// <summary>Last units that left the line, newest first.</summary>
-    public ObservableCollection<InspectionRecord> Recent { get; } = new();
+    public ObservableCollection<InspectionRecord> Recent { get; } = [];
 
     public InspectionViewModel(PlcConnection plc) : base(plc) { }
 

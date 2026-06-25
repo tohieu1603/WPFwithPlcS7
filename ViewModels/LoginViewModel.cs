@@ -7,10 +7,8 @@ namespace VisionHmi.ViewModels;
 
 /// <summary>Login + register form (one screen, toggled by <see cref="IsRegister"/>).
 /// On success the user is published to the AuthStore, which makes the app open the Shell.</summary>
-public partial class LoginViewModel : ObservableObject
+public partial class LoginViewModel(AuthService auth) : ObservableObject
 {
-    private readonly AuthService _auth;
-
     [ObservableProperty] private string _username = "";
     [ObservableProperty] private string _password = "";
     [ObservableProperty] private string _confirm = "";
@@ -33,8 +31,6 @@ public partial class LoginViewModel : ObservableObject
     public string SubmitText => IsRegister ? "Đăng ký" : "Đăng nhập";
     public string ToggleText => IsRegister ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Đăng ký";
 
-    public LoginViewModel(AuthService auth) => _auth = auth;
-
     [RelayCommand]
     private async Task Submit()
     {
@@ -45,15 +41,15 @@ public partial class LoginViewModel : ObservableObject
             if (IsRegister)
             {
                 if (Password != Confirm) { Error = "Mật khẩu nhập lại không khớp"; return; }
-                var (ok, err) = await _auth.Register(Username.Trim(), FullName.Trim(), Password);
+                var (ok, err) = await auth.Register(Username.Trim(), FullName.Trim(), Password);
                 if (!ok) { Error = err; return; }
                 // auto sign-in right after a successful registration
-                var (lok, lerr) = await _auth.Login(Username.Trim(), Password);
+                var (lok, lerr) = await auth.Login(Username.Trim(), Password);
                 if (!lok) Error = lerr;
             }
             else
             {
-                var (ok, err) = await _auth.Login(Username.Trim(), Password);
+                var (ok, err) = await auth.Login(Username.Trim(), Password);
                 if (!ok) Error = err;
             }
         }

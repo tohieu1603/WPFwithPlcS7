@@ -7,16 +7,14 @@ namespace VisionHmi.Stores;
 /// lets the app swap between the Login window and the main Shell (Navigator pattern).</summary>
 public class AuthStore
 {
-    private User? _current;
-
     public User? CurrentUser
     {
-        get => _current;
-        set { _current = value; CurrentUserChanged?.Invoke(); }
+        get;
+        set { field = value; CurrentUserChanged?.Invoke(); }
     }
 
-    public bool IsLoggedIn => _current != null;
-    public bool IsAdmin => _current?.Role == "Admin";
+    public bool IsLoggedIn => CurrentUser != null;
+    public bool IsAdmin => CurrentUser?.Role == "Admin";
 
     public event Action? CurrentUserChanged;
 

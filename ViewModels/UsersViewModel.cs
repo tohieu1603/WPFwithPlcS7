@@ -12,8 +12,8 @@ public partial class UsersViewModel : ObservableObject
 {
     private readonly UserService _users;
 
-    public ObservableCollection<User> Items { get; } = new();
-    public string[] Roles { get; } = { "Operator", "Admin" };
+    public ObservableCollection<User> Items { get; } = [];
+    public string[] Roles { get; } = ["Operator", "Admin"];
 
     [ObservableProperty] private User? _selected;
     [ObservableProperty] private string _username = "";

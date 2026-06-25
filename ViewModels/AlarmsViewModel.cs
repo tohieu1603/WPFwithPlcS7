@@ -15,8 +15,8 @@ public record AlarmEvent(string Time, string Transition, string Priority, string
 /// (ISA-18.2 style) and a per-priority summary.</summary>
 public partial class AlarmsViewModel : LiveViewModel
 {
-    public ObservableCollection<AlarmRow> Active { get; } = new();
-    public ObservableCollection<AlarmEvent> History { get; } = new();
+    public ObservableCollection<AlarmRow> Active { get; } = [];
+    public ObservableCollection<AlarmEvent> History { get; } = [];
 
     [ObservableProperty] private int _activeCount;
     [ObservableProperty] private int _criticalCount;
@@ -26,13 +26,13 @@ public partial class AlarmsViewModel : LiveViewModel
     [ObservableProperty] private string _lastAck = "—";
 
     private int _lastWords = -1;
-    private readonly HashSet<string> _prev = new();
+    private readonly HashSet<string> _prev = [];
 
     public AlarmsViewModel(PlcConnection plc) : base(plc) { }
 
     protected override void OnImage(PlcImage img)
     {
-        int[] words = { img.Word(Tag.Alarm_Word0), img.Word(Tag.Alarm_Word1) };
+        int[] words = [img.Word(Tag.Alarm_Word0), img.Word(Tag.Alarm_Word1)];
         int combo = words[0] | (words[1] << 16);
         if (combo == _lastWords) return;
         _lastWords = combo;

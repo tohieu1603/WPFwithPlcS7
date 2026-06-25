@@ -127,16 +127,16 @@ public sealed class PlcConnection
         ushort w = cur[0];
         if (on) w |= (ushort)(1 << t.Bit);
         else    w &= (ushort)~(1 << t.Bit);
-        return _ep.WriteRegs(t.Db, t.Reg, new[] { w });
+        return _ep.WriteRegs(t.Db, t.Reg, [w]);
     }
 
-    public void WriteInt(TagRef t, short v) => _writes.Enqueue(() => _ep.WriteRegs(t.Db, t.Reg, new[] { (ushort)v }));
+    public void WriteInt(TagRef t, short v) => _writes.Enqueue(() => _ep.WriteRegs(t.Db, t.Reg, [(ushort)v]));
 
     public void WriteReal(TagRef t, float v) => _writes.Enqueue(() =>
     {
         var b = new byte[4];
         System.Buffers.Binary.BinaryPrimitives.WriteSingleBigEndian(b, v);   // high word first
-        _ep.WriteRegs(t.Db, t.Reg, new[] { (ushort)((b[0] << 8) | b[1]), (ushort)((b[2] << 8) | b[3]) });
+        _ep.WriteRegs(t.Db, t.Reg, [(ushort)((b[0] << 8) | b[1]), (ushort)((b[2] << 8) | b[3])]);
     });
 
     private void SetState(LinkState s)
